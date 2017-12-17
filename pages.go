@@ -117,6 +117,8 @@ type Context interface {
 	GetCssUrl() string
 	GetMainNavigationLocations() []Location
 	GetReadNavigationLocations() []Location
+	AddPage(p Element)
+	PreparePages()
 }
 
 func NewBlogContext(twitterHandle string,
@@ -141,7 +143,8 @@ func NewBlogContext(twitterHandle string,
 		twitterPageUrl,
 		cssUrl,
 		mainNavigationLocations,
-		readNavigationLocations}
+		readNavigationLocations,
+		[]Element{}}
 }
 
 type BlogContext struct {
@@ -156,6 +159,29 @@ type BlogContext struct {
 	cssUrl                  string
 	mainNavigationLocations []Location
 	readNavigationLocations []Location
+	pages                   []Element
+}
+
+func (bc *BlogContext) PreparePages() {
+	for _, p := range bc.pages {
+		bc.renderPage(p)
+	}
+}
+
+func (bc *BlogContext) renderPage(p Element) {
+	p.AddComponent(NewGoogleComponent(bc))
+	p.AddComponent(NewTwitterComponent(bc))
+	p.AddComponent(NewFBComponent(bc))
+	p.AddComponent(NewCssLinkComponent(bc.GetCssUrl()))
+	p.AddComponent(NewTitleComponent(p.GetTitle()))
+	p.AddComponent(NewMainHeaderComponent(bc))
+	p.AddComponent(NewGalleryComponent())
+	p.AddComponent(NewNaviComponent(bc.GetMainNavigationLocations()))
+	p.AddComponent(NewReadNaviComponent(bc.GetReadNavigationLocations()))
+}
+
+func (bc *BlogContext) AddPage(p Element) {
+	bc.pages = append(bc.pages, p)
 }
 
 func (bc *BlogContext) GetMainNavigationLocations() []Location {
