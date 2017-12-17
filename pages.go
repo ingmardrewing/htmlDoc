@@ -1,8 +1,15 @@
 package htmlDoc
 
 /* location */
-type element interface {
+type Element interface {
+	Location
 	acceptVisitor(v visitor)
+	addBodyNodes([]*Node)
+	addHeaderNodes([]*Node)
+	GetPublishedTime() string
+	GetDescription() string
+	GetImageUrl() string
+	AddComponent(c component)
 }
 
 type Location interface {
@@ -50,12 +57,16 @@ func NewPage(title, description, url, imageUrl, publishedTime string) *Page {
 	return p
 }
 
-func (p *Page) GetUrl() string {
-	return p.url
+func (p *Page) GetDescription() string {
+	return p.Description
 }
 
-func (p *Page) GetTitle() string {
-	return p.title
+func (p *Page) GetImageUrl() string {
+	return p.ImageUrl
+}
+
+func (p *Page) GetPublishedTime() string {
+	return p.PublishedTime
 }
 
 func (p *Page) acceptVisitor(v visitor) {

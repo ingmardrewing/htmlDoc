@@ -3,17 +3,17 @@ package htmlDoc
 /* component */
 
 type visitor interface {
-	visitPage(p *Page)
+	visitPage(p Element)
 }
 
 type component interface {
 	AddNode(n *Node)
-	visitPage(p *Page)
+	visitPage(p Element)
 }
 
 type concreteComponent struct {
 	nodes         []*Node
-	visitFunction func(p *Page)
+	visitFunction func(p Element)
 }
 
 func (m *concreteComponent) AddNode(n *Node) {
@@ -29,11 +29,11 @@ func (m *concreteComponent) AddMeta(metaData ...string) {
 	m.AddNode(n)
 }
 
-func (m *concreteComponent) SetVisitFunction(f func(p *Page)) {
+func (m *concreteComponent) SetVisitFunction(f func(p Element)) {
 	m.visitFunction = f
 }
 
-func (m *concreteComponent) visit(p *Page) {
+func (m *concreteComponent) visitPage(p Element) {
 	m.visitFunction(p)
 }
 
@@ -43,8 +43,8 @@ type HeaderComponent struct {
 	concreteComponent
 }
 
-func (hc *HeaderComponent) visit(p *Page) {
-	hc.concreteComponent.visit(p)
+func (hc *HeaderComponent) visitPage(p Element) {
+	hc.concreteComponent.visitPage(p)
 	p.addHeaderNodes(hc.concreteComponent.nodes)
 }
 
@@ -54,8 +54,8 @@ type BodyComponent struct {
 	concreteComponent
 }
 
-func (hc *BodyComponent) visit(p *Page) {
-	hc.concreteComponent.visit(p)
+func (hc *BodyComponent) visitPage(p Element) {
+	hc.concreteComponent.visitPage(p)
 	p.addBodyNodes(hc.concreteComponent.nodes)
 }
 
@@ -66,7 +66,7 @@ type NaviComponent struct {
 	locations []Location
 }
 
-func (nv *NaviComponent) visit(p *Page) {
+func (nv *NaviComponent) visitPage(p Element) {
 	node := NewNode("nav", "", map[string]string{})
 	url := p.GetUrl()
 	for _, l := range nv.locations {
@@ -93,60 +93,86 @@ type ReadNaviComponent struct {
 	locations []Location
 }
 
-func (rnv *ReadNaviComponent) addFirst(p *Page, n *Node) {
+func (rnv *ReadNaviComponent) addFirst(p Element, n *Node) {
 	inx := rnv.getIndexOfPage(p)
 	if inx == 0 {
 		n.AddChild("span", "<< first")
 	} else {
 		f := rnv.locations[0]
-		n.AddChild("a", "<< first", "href", f.GetUrl())
+		n.AddChild("a", "<< first", "href", f.GetUrl(), "rel", "first")
 	}
 }
 
-func (rnv *ReadNaviComponent) addPrevious(p *Page, n *Node) {
+func (rnv *ReadNaviComponent) addPrevious(p Element, n *Node) {
 	inx := rnv.getIndexOfPage(p)
 	if inx == 0 {
 		n.AddChild("span", "< previous")
 	} else {
 		p := rnv.locations[inx-1]
-		n.AddChild("a", "< previous", "href", p.GetUrl())
+		n.AddChild("a", "< previous", "href", p.GetUrl(), "rel", "prev")
 	}
 }
 
-func (rnv *ReadNaviComponent) addNext(p *Page, n *Node) {
+func (rnv *ReadNaviComponent) addNext(p Element, n *Node) {
 	inx := rnv.getIndexOfPage(p)
 	if inx == len(rnv.locations)-1 {
 		n.AddChild("span", "next >")
 	} else {
 		nx := rnv.locations[inx+1]
-		n.AddChild("a", "next >", "href", nx.GetUrl())
+		n.AddChild("a", "next >", "href", nx.GetUrl(), "rel", "next")
 	}
 }
 
-func (rnv *ReadNaviComponent) addLast(p *Page, n *Node) {
+func (rnv *ReadNaviComponent) addLast(p Element, n *Node) {
 	inx := rnv.getIndexOfPage(p)
 	if inx == len(rnv.locations)-1 {
 		n.AddChild("span", "newest >>")
 	} else {
 		nw := rnv.locations[len(rnv.locations)-1]
-		n.AddChild("a", "neweset >>", "href", nw.GetUrl())
+		n.AddChild("a", "neweset >>", "href", nw.GetUrl(), "rel", "last")
 	}
 }
 
-func (rnv *ReadNaviComponent) visit(p *Page) {
-	if len(rnv.locations) < 3 {
-		return
+func (rnv *ReadNaviComponent) addHeaderNodes(p Element) {
+	inx := rnv.getIndexOfPage(p)
+	n := []*Node{}
+	firstUrl := rnv.locations[0].GetUrl()
+	n = append(n, NewNode("link", "", ToMap("rel", "first", "href", firstUrl)))
+	if inx > 0 {
+		prevUrl := rnv.locations[inx-1].GetUrl()
+		pm := ToMap("rel", "prev", "href", prevUrl)
+		n = append(n, NewNode("link", "", pm))
 	}
-	node := NewNode("nav", "", map[string]string{})
-	rnv.addFirst(p, node)
-	rnv.addPrevious(p, node)
-	rnv.addNext(p, node)
-	rnv.addLast(p, node)
-	rnv.concreteComponent.AddNode(node)
+	if inx < len(rnv.locations)-1 {
+		nextUrl := rnv.locations[inx+1].GetUrl()
+		nm := ToMap("rel", "next", "href", nextUrl)
+		n = append(n, NewNode("link", "", nm))
+	}
+	lastUrl := rnv.locations[len(rnv.locations)-1].GetUrl()
+	n = append(n, NewNode("link", "", ToMap("rel", "last", "href", lastUrl)))
+	p.addHeaderNodes(n)
+}
+
+func (rnv *ReadNaviComponent) addBodyNodes(p Element) {
+	bodyNav := NewNode("nav", "", map[string]string{})
+	rnv.addFirst(p, bodyNav)
+	rnv.addPrevious(p, bodyNav)
+	rnv.addNext(p, bodyNav)
+	rnv.addLast(p, bodyNav)
+	rnv.concreteComponent.AddNode(bodyNav)
 	p.addBodyNodes(rnv.concreteComponent.nodes)
 }
 
-func (rnv *ReadNaviComponent) getIndexOfPage(p *Page) int {
+func (rnv *ReadNaviComponent) visitPage(p Element) {
+	if len(rnv.locations) < 3 {
+		return
+	}
+	rnv.addHeaderNodes(p)
+	rnv.addBodyNodes(p)
+
+}
+
+func (rnv *ReadNaviComponent) getIndexOfPage(p Element) int {
 	for i, l := range rnv.locations {
 		if l.GetUrl() == p.GetUrl() {
 			return i
@@ -159,4 +185,10 @@ func (rnv *ReadNaviComponent) AddLocations(locs []Location) {
 	for _, l := range locs {
 		rnv.locations = append(rnv.locations, l)
 	}
+}
+
+/* disqus */
+
+type disqusComponent struct {
+	concreteComponent
 }
