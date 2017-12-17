@@ -1,6 +1,8 @@
 package htmlDoc
 
-import "fmt"
+import (
+	"fmt"
+)
 
 /* component */
 
@@ -61,11 +63,121 @@ func (hc *BodyComponent) visitPage(p Element) {
 	p.addBodyNodes(hc.concreteComponent.nodes)
 }
 
+/* fb component */
+type FBComponent struct {
+	concreteComponent
+	context Context
+}
+
+func NewFBComponent(context Context) *FBComponent {
+	fb := new(FBComponent)
+	fb.context = context
+	return fb
+}
+
+func (fbc *FBComponent) visitPage(p Element) {
+	fbc.AddMeta("property", "og:title", "content", p.GetTitle())
+	fbc.AddMeta("property", "og:url", "content", p.GetUrl())
+	fbc.AddMeta("property", "og:image", "content", p.GetImageUrl())
+	fbc.AddMeta("property", "og:description", "content", p.GetDescription())
+	fbc.AddMeta("property", "og:site_name", "content", fbc.context.GetSiteName())
+	fbc.AddMeta("property", "og:type", "content", fbc.context.GetOGType())
+	fbc.AddMeta("property", "article:published_time", "content", p.GetPublishedTime())
+	fbc.AddMeta("property", "article:modified_time", "content", p.GetPublishedTime())
+	fbc.AddMeta("property", "article:section", "content", fbc.context.GetContentSection())
+	fbc.AddMeta("property", "article:tag", "content", fbc.context.GetContentTags())
+	p.addHeaderNodes(fbc.concreteComponent.nodes)
+}
+
+/* google component */
+
+type GoogleComponent struct {
+	concreteComponent
+	context Context
+}
+
+func NewGoogleComponent(context Context) *GoogleComponent {
+	gc := new(GoogleComponent)
+	gc.context = context
+	return gc
+}
+
+func (goo *GoogleComponent) visitPage(p Element) {
+	goo.AddMeta("itemprop", "name", "content", p.GetTitle())
+	goo.AddMeta("itemprop", "description", "content", p.GetDescription())
+	goo.AddMeta("itemprop", "image", "content", p.GetImageUrl())
+	p.addHeaderNodes(goo.concreteComponent.nodes)
+}
+
+/* twitter component */
+
+type TwitterComponent struct {
+	concreteComponent
+	context Context
+}
+
+func NewTwitterComponent(context Context) *TwitterComponent {
+	t := new(TwitterComponent)
+	t.context = context
+	return t
+}
+
+func (tw *TwitterComponent) visitPage(p Element) {
+	tw.AddMeta("name", "t:card", "content", tw.context.GetTwitterCardType())
+	tw.AddMeta("name", "t:site", "content", tw.context.GetTwitterHandle())
+	tw.AddMeta("name", "t:title", "content", p.GetTitle())
+	tw.AddMeta("name", "t:text:description", "content", p.GetDescription())
+	tw.AddMeta("name", "t:creator", "content", tw.context.GetTwitterHandle())
+	tw.AddMeta("name", "t:image", "content", p.GetImageUrl())
+	p.addHeaderNodes(tw.concreteComponent.nodes)
+}
+
+/* title component */
+type TitleComponent struct {
+	concreteComponent
+	title string
+}
+
+func NewTitleComponent(title string) *TitleComponent {
+	tc := new(TitleComponent)
+	tc.title = title
+	return tc
+}
+
+func (tc *TitleComponent) visitPage(p Element) {
+	tc.AddTag("title", tc.title)
+	p.addHeaderNodes(tc.concreteComponent.nodes)
+}
+
+/* css link component */
+
+type CssLinkComponent struct {
+	concreteComponent
+	url string
+}
+
+func NewCssLinkComponent(url string) *CssLinkComponent {
+	clc := new(CssLinkComponent)
+	clc.url = url
+	return clc
+}
+
+func (clc *CssLinkComponent) visitPage(p Element) {
+	clc.AddTag("link", "", "href", clc.url, "rel", "stylesheet", "type", "text/css")
+	p.addHeaderNodes(clc.concreteComponent.nodes)
+}
+
 /* naviComponent */
 
 type NaviComponent struct {
 	concreteComponent
 	locations []Location
+}
+
+func NewNaviComponent(locations []Location) *NaviComponent {
+	nc := new(NaviComponent)
+	nc.locations = locations
+	return nc
 }
 
 func (nv *NaviComponent) visitPage(p Element) {
@@ -93,6 +205,12 @@ func (nv *NaviComponent) AddLocations(locs []Location) {
 type ReadNaviComponent struct {
 	concreteComponent
 	locations []Location
+}
+
+func NewReadNaviComponent(locations []Location) *ReadNaviComponent {
+	rnc := new(ReadNaviComponent)
+	rnc.locations = locations
+	return rnc
 }
 
 func (rnv *ReadNaviComponent) addFirst(p Element, n *Node) {
@@ -220,7 +338,232 @@ func (dc *DisqusComponent) visitPage(p Element) {
 	p.addBodyNodes([]*Node{n})
 }
 
+/* main  header component */
+
+type MainHeaderComponent struct {
+	concreteComponent
+	context Context
+}
+
+func NewMainHeaderComponent(context Context) *MainHeaderComponent {
+	mhc := new(MainHeaderComponent)
+	mhc.context = context
+	return mhc
+}
+
+func (mhc *MainHeaderComponent) visitPage(p Element) {
+	header := NewNode("header", "", ToMap("class", "headerbar"))
+	inner := header.AddChild("div", "", "class", "headerbar__inner")
+	nav := inner.AddChild("nav", "", "class", "headerbar__nav")
+	nav.AddChild("a", "twitter", "href", mhc.context.GetTwitterPage(), "class", "headerbar__navelement")
+	nav.AddChild("a", "facebook", "href", mhc.context.GetFBPageUrl(), "class", "headerbar__navelement")
+	p.addBodyNodes([]*Node{header})
+}
+
+/* gallery component */
+
+type GalleryComponent struct {
+	concreteComponent
+}
+
+func NewGalleryComponent() *GalleryComponent {
+	gc := new(GalleryComponent)
+	return gc
+}
+
+func (gal *GalleryComponent) visitPage(p Element) {
+	m := NewNode("main", "", ToMap("class", "maincontent"))
+	inner := m.AddChild("div", "", "class", "maincontent__inner")
+	for i := 0; i < 5; i++ {
+		div := inner.AddChild("a", "", "class", "portfoliothumb", "href", "https://drewing.de")
+		div.AddChild("img", "", "class", "portfoliothumb__image", "src", "https://s3.amazonaws.com/drewingdeblog/blog/wp-content/uploads/2017/12/02152842/atthezoo-400x400.png")
+		label := div.AddChild("div", "", "class", "portfoliothumb__label")
+		label.AddChild("span", "At The Zoo", "class", "portfoliothumb__title")
+		label.AddChild("span", "Digital drawing", "class", "portfoliothumb__details")
+	}
+	p.addBodyNodes([]*Node{m})
+}
+
 /* cookie notifier component */
 
-type cookieNotifierComponent struct {
+type CookieNotifierComponent struct {
 }
+
+func (cnc *CookieNotifierComponent) visitPage(p Element) {
+	n := NewNode("script", cookiebar, ToMap("language", "javascript", "type", "text/javascript"))
+	p.addBodyNodes([]*Node{n})
+}
+
+var cookiebar = `
+	function cli_show_cookiebar(p) {
+		var Cookie = {
+			set: function(name,value,days) {
+				if (days) {
+					var date = new Date();
+					date.setTime(date.getTime()+(days*24*60*60*1000));
+					var expires = "; expires="+date.toGMTString();
+				}
+				else var expires = "";
+				document.cookie = name+"="+value+expires+"; path=/";
+			},
+			read: function(name) {
+				var nameEQ = name + "=";
+				var ca = document.cookie.split(';');
+				for(var i=0;i < ca.length;i++) {
+					var c = ca[i];
+					while (c.charAt(0)==' ') {
+						c = c.substring(1,c.length);
+					}
+					if (c.indexOf(nameEQ) === 0) {
+						return c.substring(nameEQ.length,c.length);
+					}
+				}
+				return null;
+			},
+			erase: function(name) {
+				this.set(name,"",-1);
+			},
+			exists: function(name) {
+				return (this.read(name) !== null);
+			}
+		};
+
+		var ACCEPT_COOKIE_NAME = 'viewed_cookie_policy',
+			ACCEPT_COOKIE_EXPIRE = 365,
+			json_payload = p.settings;
+
+		if (typeof JSON.parse !== "function") {
+			console.log("CookieLawInfo requires JSON.parse but your browser doesn't support it");
+			return;
+		}
+		var settings = JSON.parse(json_payload);
+
+		var cached_header = jQuery(settings.notify_div_id),
+			cached_showagain_tab = jQuery(settings.showagain_div_id),
+			btn_accept = jQuery('#cookie_hdr_accept'),
+			btn_decline = jQuery('#cookie_hdr_decline'),
+			btn_moreinfo = jQuery('#cookie_hdr_moreinfo'),
+			btn_settings = jQuery('#cookie_hdr_settings');
+
+		cached_header.hide();
+		if ( !settings.showagain_tab ) {
+			cached_showagain_tab.hide();
+		}
+
+		var hdr_args = { };
+
+		var showagain_args = { };
+		cached_header.css( hdr_args );
+		cached_showagain_tab.css( showagain_args );
+
+		if (!Cookie.exists(ACCEPT_COOKIE_NAME)) {
+			displayHeader();
+		}
+		else {
+			cached_header.hide();
+		}
+
+		if ( settings.show_once_yn ) {
+			setTimeout(close_header, settings.show_once);
+		}
+		function close_header() {
+			Cookie.set(ACCEPT_COOKIE_NAME, 'yes', ACCEPT_COOKIE_EXPIRE);
+			hideHeader();
+		}
+
+		var main_button = jQuery('.cli-plugin-main-button');
+		main_button.css( 'color', settings.button_1_link_colour );
+
+		if ( settings.button_1_as_button ) {
+			main_button.css('background-color', settings.button_1_button_colour);
+
+			main_button.hover(function() {
+				jQuery(this).css('background-color', settings.button_1_button_hover);
+			},
+			function() {
+				jQuery(this).css('background-color', settings.button_1_button_colour);
+			});
+		}
+		var main_link = jQuery('.cli-plugin-main-link');
+		main_link.css( 'color', settings.button_2_link_colour );
+
+		if ( settings.button_2_as_button ) {
+			main_link.css('background-color', settings.button_2_button_colour);
+
+			main_link.hover(function() {
+				jQuery(this).css('background-color', settings.button_2_button_hover);
+			},
+			function() {
+				jQuery(this).css('background-color', settings.button_2_button_colour);
+			});
+		}
+
+		cached_showagain_tab.click(function(e) {
+			e.preventDefault();
+			cached_showagain_tab.slideUp(settings.animate_speed_hide, function slideShow() {
+				cached_header.slideDown(settings.animate_speed_show);
+			});
+		});
+
+		jQuery("#cookielawinfo-cookie-delete").click(function() {
+			Cookie.erase(ACCEPT_COOKIE_NAME);
+			return false;
+		});
+		jQuery("#cookie_action_close_header").click(function(e) {
+			e.preventDefault();
+			accept_close();
+		});
+
+		function accept_close() {
+			Cookie.set(ACCEPT_COOKIE_NAME, 'yes', ACCEPT_COOKIE_EXPIRE);
+
+			if (settings.notify_animate_hide) {
+				cached_header.slideUp(settings.animate_speed_hide);
+			}
+			else {
+				cached_header.hide();
+			}
+			cached_showagain_tab.slideDown(settings.animate_speed_show);
+			return false;
+		}
+
+		function closeOnScroll() {
+			if (window.pageYOffset > 100 && !Cookie.read(ACCEPT_COOKIE_NAME)) {
+				accept_close();
+				if (settings.scroll_close_reload === true) {
+					location.reload();
+				}
+				window.removeEventListener("scroll", closeOnScroll, false);
+			}
+		}
+		if (settings.scroll_close === true) {
+			window.addEventListener("scroll", closeOnScroll, false);
+		}
+
+		function displayHeader() {
+			if (settings.notify_animate_show) {
+				cached_header.slideDown(settings.animate_speed_show);
+			}
+			else {
+				cached_header.show();
+			}
+			cached_showagain_tab.hide();
+		}
+		function hideHeader() {
+			if (settings.notify_animate_show) {
+				cached_showagain_tab.slideDown(settings.animate_speed_show);
+			}
+			else {
+				cached_showagain_tab.show();
+			}
+			cached_header.slideUp(settings.animate_speed_show);
+		}
+	};
+
+	function l1hs(str){if(str.charAt(0)=="#"){str=str.substring(1,str.length);}else{return "#"+str;}return l1hs(str);}
+
+cli_show_cookiebar({
+					settings: '{"animate_speed_hide":"500","animate_speed_show":"500","background":"#fff","border":"#444","border_on":true,"button_1_button_colour":"#000","button_1_button_hover":"#000000","button_1_link_colour":"#fff","button_1_as_button":true,"button_2_button_colour":"#333","button_2_button_hover":"#292929","button_2_link_colour":"#444","button_2_as_button":false,"font_family":"inherit","header_fix":false,"notify_animate_hide":true,"notify_animate_show":false,"notify_div_id":"#cookie-law-info-bar","notify_position_horizontal":"right","notify_position_vertical":"bottom","scroll_close":false,"scroll_close_reload":false,"showagain_tab":false,"showagain_background":"#fff","showagain_border":"#000","showagain_div_id":"#cookie-law-info-again","showagain_x_position":"100px","text":"#000","show_once_yn":false,"show_once":"10000"}'
+});
+
+`
