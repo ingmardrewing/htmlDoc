@@ -1,5 +1,7 @@
 package htmlDoc
 
+import "fmt"
+
 /* component */
 
 type visitor interface {
@@ -187,8 +189,38 @@ func (rnv *ReadNaviComponent) AddLocations(locs []Location) {
 	}
 }
 
-/* disqus */
+/* disqus component */
 
-type disqusComponent struct {
+type DisqusComponent struct {
 	concreteComponent
+	dqShortname  string
+	dqIdentifier string
+}
+
+var disqusJS = `
+<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+		this.page.title= "%s";
+    	this.page.url = '%s';
+		this.page.identifier =  '%s';
+    };
+    (function() {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://%s.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+`
+
+func (dc *DisqusComponent) visitPage(p Element) {
+	js := fmt.Sprintf(disqusJS, p.GetTitle(), p.GetUrl(), dc.dqIdentifier, dc.dqShortname)
+	n := NewNode("script", js, ToMap("language", "javascript", "type", "text/javascript"))
+	p.addBodyNodes([]*Node{n})
+}
+
+/* cookie notifier component */
+
+type cookieNotifierComponent struct {
 }
