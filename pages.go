@@ -49,7 +49,6 @@ type Page struct {
 	Description   string
 	ImageUrl      string
 	PublishedTime string
-	thumbnailUrl  string
 }
 
 func NewPage(title, description, url, imageUrl, publishedTime, thumbnailUrl string) *Page {
@@ -58,10 +57,10 @@ func NewPage(title, description, url, imageUrl, publishedTime, thumbnailUrl stri
 		Description:   description,
 		ImageUrl:      imageUrl,
 		PublishedTime: publishedTime,
-		doc:           NewHtmlDoc(),
-		thumbnailUrl:  thumbnailUrl}
+		doc:           NewHtmlDoc()}
 	p.Loc.title = title
 	p.Loc.url = url
+	p.Loc.thumbnailUrl = thumbnailUrl
 	return p
 }
 
