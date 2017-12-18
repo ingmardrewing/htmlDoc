@@ -9,6 +9,7 @@ type Element interface {
 	GetPublishedTime() string
 	GetDescription() string
 	GetImageUrl() string
+	GetDisqusId() string
 	AddComponent(c component)
 }
 
@@ -49,19 +50,25 @@ type Page struct {
 	Description   string
 	ImageUrl      string
 	PublishedTime string
+	DisqusId      string
 }
 
-func NewPage(title, description, url, imageUrl, publishedTime, thumbnailUrl string) *Page {
+func NewPage(title, description, url, imageUrl, publishedTime, thumbnailUrl, disqusId string) *Page {
 	p := &Page{
 		components:    []component{},
 		Description:   description,
 		ImageUrl:      imageUrl,
 		PublishedTime: publishedTime,
+		DisqusId:      disqusId,
 		doc:           NewHtmlDoc()}
 	p.Loc.title = title
 	p.Loc.url = url
 	p.Loc.thumbnailUrl = thumbnailUrl
 	return p
+}
+
+func (p *Page) GetDisqusId() string {
+	return p.DisqusId
 }
 
 func (p *Page) GetDescription() string {
@@ -115,6 +122,7 @@ type Context interface {
 	GetFBPageUrl() string
 	GetTwitterPage() string
 	GetCssUrl() string
+	GetDisqusShortname() string
 	GetMainNavigationLocations() []Location
 	GetReadNavigationLocations() []Location
 	AddPage(p Element)
@@ -130,6 +138,7 @@ func NewBlogContext(twitterHandle string,
 	fbPageUrl string,
 	twitterPageUrl string,
 	cssUrl string,
+	disqusShortname string,
 	mainNavigationLocations []Location,
 	readNavigationLocations []Location) *BlogContext {
 	return &BlogContext{
@@ -142,6 +151,7 @@ func NewBlogContext(twitterHandle string,
 		fbPageUrl,
 		twitterPageUrl,
 		cssUrl,
+		disqusShortname,
 		mainNavigationLocations,
 		readNavigationLocations,
 		[]Element{}}
@@ -157,6 +167,7 @@ type BlogContext struct {
 	fbPageUrl               string
 	twitterPageUrl          string
 	cssUrl                  string
+	disqusShortname         string
 	mainNavigationLocations []Location
 	readNavigationLocations []Location
 	pages                   []Element
@@ -178,10 +189,15 @@ func (bc *BlogContext) renderPage(p Element) {
 	p.AddComponent(NewGalleryComponent())
 	p.AddComponent(NewNaviComponent(bc.GetMainNavigationLocations()))
 	p.AddComponent(NewReadNaviComponent(bc.GetReadNavigationLocations()))
+	p.AddComponent(NewDisqusComponent(bc.GetDisqusShortname(), p.GetDisqusId()))
 }
 
 func (bc *BlogContext) AddPage(p Element) {
 	bc.pages = append(bc.pages, p)
+}
+
+func (bc *BlogContext) GetDisqusShortname() string {
+	return bc.disqusShortname
 }
 
 func (bc *BlogContext) GetMainNavigationLocations() []Location {

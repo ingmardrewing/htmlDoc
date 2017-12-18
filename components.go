@@ -311,8 +311,15 @@ func (rnv *ReadNaviComponent) AddLocations(locs []Location) {
 
 type DisqusComponent struct {
 	concreteComponent
-	dqShortname  string
-	dqIdentifier string
+	shortname string
+	id        string
+}
+
+func NewDisqusComponent(shortname, id string) *DisqusComponent {
+	d := new(DisqusComponent)
+	d.shortname = shortname
+	d.id = id
+	return d
 }
 
 var disqusJS = `
@@ -333,7 +340,7 @@ var disqusJS = `
 `
 
 func (dc *DisqusComponent) visitPage(p Element) {
-	js := fmt.Sprintf(disqusJS, p.GetTitle(), p.GetUrl(), dc.dqIdentifier, dc.dqShortname)
+	js := fmt.Sprintf(disqusJS, p.GetTitle(), p.GetUrl(), dc.id, dc.shortname)
 	n := NewNode("script", js, ToMap("language", "javascript", "type", "text/javascript"))
 	p.addBodyNodes([]*Node{n})
 }
@@ -382,6 +389,26 @@ func (gal *GalleryComponent) visitPage(p Element) {
 		label.AddChild("span", "Digital drawing", "class", "portfoliothumb__details")
 	}
 	p.addBodyNodes([]*Node{m})
+}
+
+/* copyright component */
+type CopyRightComponent struct {
+	concreteComponent
+}
+
+func NewCopyRightComponent() *CopyRightComponent {
+	return new(CopyRightComponent)
+}
+
+func (crc *CopyRightComponent) visitPage(p Element) {
+	n := NewNode("div", `
+	<a rel="license" class="license" href="https://creativecommons.org/licenses/by-nc-nd/3.0/">&nbsp;</a>
+	<p id="license">© 2017 Ingmar Drewing <br>
+Except where otherwise noted, content on this site is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/3.0/">Create Commons Attribution-NonCommercial-NoDerivs 3.0 Unported (CC BY-NC-ND 3.0) license</a>.<br>
+        Soweit nicht anders explizit ausgewiesen, stehen die Inhalte auf dieser Website unter der <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/3.0/">Creative Commons Namensnennung-NichtKommerziell-KeineBearbeitung (CC BY-NC-ND 3.0)</a> Lizenz. Unless otherwise noted the author of the content on this page is <a href="https://plus.google.com/113943655600557711368?rel=author">Ingmar Drewing</a>
+    </p>
+	`, ToMap())
+	p.addBodyNodes([]*Node{n})
 }
 
 /* cookie notifier component */
