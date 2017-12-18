@@ -190,6 +190,7 @@ func (bc *BlogContext) renderPage(p Element) {
 	p.AddComponent(NewNaviComponent(bc.GetMainNavigationLocations()))
 	p.AddComponent(NewReadNaviComponent(bc.GetReadNavigationLocations()))
 	p.AddComponent(NewDisqusComponent(bc.GetDisqusShortname(), p.GetDisqusId()))
+	p.AddComponent(NewCopyRightComponent())
 }
 
 func (bc *BlogContext) AddPage(p Element) {
