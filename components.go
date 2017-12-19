@@ -135,17 +135,14 @@ func (tw *TwitterComponent) visitPage(p Element) {
 /* title component */
 type TitleComponent struct {
 	concreteComponent
-	title string
 }
 
-func NewTitleComponent(title string) *TitleComponent {
-	tc := new(TitleComponent)
-	tc.title = title
-	return tc
+func NewTitleComponent() *TitleComponent {
+	return new(TitleComponent)
 }
 
 func (tc *TitleComponent) visitPage(p Element) {
-	tc.AddTag("title", tc.title)
+	tc.AddTag("title", p.GetTitle())
 	p.addHeaderNodes(tc.concreteComponent.nodes)
 }
 
@@ -312,13 +309,11 @@ func (rnv *ReadNaviComponent) AddLocations(locs []Location) {
 type DisqusComponent struct {
 	concreteComponent
 	shortname string
-	id        string
 }
 
-func NewDisqusComponent(shortname, id string) *DisqusComponent {
+func NewDisqusComponent(shortname string) *DisqusComponent {
 	d := new(DisqusComponent)
 	d.shortname = shortname
-	d.id = id
 	return d
 }
 
@@ -340,7 +335,7 @@ var disqusJS = `
 `
 
 func (dc *DisqusComponent) visitPage(p Element) {
-	js := fmt.Sprintf(disqusJS, p.GetTitle(), p.GetUrl(), dc.id, dc.shortname)
+	js := fmt.Sprintf(disqusJS, p.GetTitle(), p.GetUrl(), p.GetDisqusId(), dc.shortname)
 	n := NewNode("script", js, ToMap("language", "javascript", "type", "text/javascript"))
 	p.addBodyNodes([]*Node{n})
 }
