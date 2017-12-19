@@ -17,16 +17,27 @@ type Location interface {
 	GetUrl() string
 	GetTitle() string
 	GetThumbnailUrl() string
+	GetFsPath() string
 }
 
-func NewLocation(url, title, thumbnailUrl string) *Loc {
-	return &Loc{url, title, thumbnailUrl}
+func NewLocation(url, title, thumbnailUrl, fsPath, fsFilename string) *Loc {
+	return &Loc{url, title, thumbnailUrl, fsPath, fsFilename}
 }
 
 type Loc struct {
 	url          string
 	title        string
 	thumbnailUrl string
+	fsPath       string
+	fsFilename   string
+}
+
+func (l *Loc) GetFsPath() string {
+	return l.fsPath
+}
+
+func (l *Loc) GetFsFilename() string {
+	return l.fsFilename
 }
 
 func (l *Loc) GetUrl() string {
@@ -46,6 +57,7 @@ func (l *Loc) GetThumbnailUrl() string {
 type Page struct {
 	Loc
 	doc           *HtmlDoc
+	id            string
 	components    []component
 	Description   string
 	ImageUrl      string
@@ -53,17 +65,23 @@ type Page struct {
 	DisqusId      string
 }
 
-func NewPage(title, description, url, imageUrl, publishedTime, thumbnailUrl, disqusId string) *Page {
+func NewPage(
+	id, title, description,
+	imageUrl, thumbUrl, path, filename,
+	publishedTime, disqusId string) *Page {
 	p := &Page{
 		components:    []component{},
+		id:            id,
 		Description:   description,
 		ImageUrl:      imageUrl,
 		PublishedTime: publishedTime,
 		DisqusId:      disqusId,
 		doc:           NewHtmlDoc()}
 	p.Loc.title = title
-	p.Loc.url = url
-	p.Loc.thumbnailUrl = thumbnailUrl
+	p.Loc.url = path + filename
+	p.Loc.thumbnailUrl = thumbUrl
+	p.Loc.fsPath = path
+	p.Loc.fsFilename = filename
 	return p
 }
 
