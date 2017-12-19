@@ -10,7 +10,7 @@ type Element interface {
 	GetDescription() string
 	GetImageUrl() string
 	GetDisqusId() string
-	AddComponent(c component)
+	Render() string
 }
 
 type Location interface {
@@ -58,7 +58,6 @@ type Page struct {
 	Loc
 	doc           *HtmlDoc
 	id            string
-	components    []component
 	Description   string
 	ImageUrl      string
 	PublishedTime string
@@ -70,7 +69,6 @@ func NewPage(
 	imageUrl, thumbUrl, path, filename,
 	publishedTime, disqusId string) *Page {
 	p := &Page{
-		components:    []component{},
 		id:            id,
 		Description:   description,
 		ImageUrl:      imageUrl,
@@ -83,6 +81,10 @@ func NewPage(
 	p.Loc.fsPath = path
 	p.Loc.fsFilename = filename
 	return p
+}
+
+func (p *Page) Render() string {
+	return p.doc.Render()
 }
 
 func (p *Page) GetDisqusId() string {
@@ -105,13 +107,6 @@ func (p *Page) acceptVisitor(v visitor) {
 	v.visitPage(p)
 }
 
-func (p *Page) Render() string {
-	for _, c := range p.components {
-		p.acceptVisitor(c)
-	}
-	return p.doc.Render()
-}
-
 func (p *Page) addHeaderNodes(nodes []*Node) {
 	for _, n := range nodes {
 		p.doc.AddHeadNode(n)
@@ -122,10 +117,6 @@ func (p *Page) addBodyNodes(nodes []*Node) {
 	for _, n := range nodes {
 		p.doc.AddBodyNode(n)
 	}
-}
-
-func (p *Page) AddComponent(c component) {
-	p.components = append(p.components, c)
 }
 
 /* context */
@@ -143,9 +134,8 @@ type Context interface {
 	GetDisqusShortname() string
 	GetMainNavigationLocations() []Location
 	GetReadNavigationLocations() []Location
-	AddPage(p Element)
 	AddComponent(c component)
-	PreparePages()
+	Render(p Element) string
 }
 
 func NewBlogContext(twitterHandle string,
@@ -207,24 +197,15 @@ type BlogContext struct {
 	components              []component
 }
 
-func (bc *BlogContext) PreparePages() {
-	for _, p := range bc.pages {
-		bc.renderPage(p)
-	}
-}
-
 func (bc *BlogContext) AddComponent(c component) {
 	bc.components = append(bc.components, c)
 }
 
-func (bc *BlogContext) renderPage(p Element) {
+func (bc *BlogContext) Render(p Element) string {
 	for _, c := range bc.components {
-		p.AddComponent(c)
+		p.acceptVisitor(c)
 	}
-}
-
-func (bc *BlogContext) AddPage(p Element) {
-	bc.pages = append(bc.pages, p)
+	return p.Render()
 }
 
 func (bc *BlogContext) GetDisqusShortname() string {
