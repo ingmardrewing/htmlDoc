@@ -20,11 +20,11 @@ func (m *concreteComponent) AddNode(n *Node) {
 }
 
 func (m *concreteComponent) AddTag(tagName string, text string, attributes ...string) {
-	m.AddNode(NewNode(tagName, text, ToMap(attributes...)))
+	m.AddNode(NewNode(tagName, text, attributes...))
 }
 
 func (m *concreteComponent) AddMeta(metaData ...string) {
-	n := NewNode("meta", "", ToMap(metaData...))
+	n := NewNode("meta", "", metaData...)
 	m.AddNode(n)
 }
 
@@ -159,37 +159,43 @@ func (clc *CssLinkComponent) visitPage(p Element) {
 	p.addHeaderNodes(clc.concreteComponent.nodes)
 }
 
-/* naviComponent */
+/* NaviComponent */
+
+func NewMainNaviComponent(locations []Location) *NaviComponent {
+	return newNaviComponent(locations, "mainNav")
+}
+
+func NewFooterNaviComponent(locations []Location) *NaviComponent {
+	return newNaviComponent(locations, "footerNav")
+}
+
+func newNaviComponent(locs []Location, class string) *NaviComponent {
+	nc := new(NaviComponent)
+	nc.locations = locs
+	nc.cssClass = class
+	return nc
+}
 
 type NaviComponent struct {
 	concreteComponent
 	locations []Location
-}
-
-func NewNaviComponent(locations []Location) *NaviComponent {
-	nc := new(NaviComponent)
-	nc.locations = locations
-	return nc
+	cssClass  string
 }
 
 func (nv *NaviComponent) visitPage(p Element) {
-	node := NewNode("nav", "", map[string]string{})
+	nav := NewNode("nav", "")
 	url := p.GetUrl()
 	for _, l := range nv.locations {
 		if url == l.GetUrl() {
-			node.AddChild("span", l.GetTitle())
+			nav.AddChild("span", l.GetTitle())
 		} else {
-			node.AddChild("a", l.GetTitle(), "href", l.GetUrl())
+			nav.AddChild("a", l.GetTitle(), "href", l.GetUrl())
 		}
 	}
+	node := NewNode("div", "", "class", nv.cssClass)
+	node.AddChild("div", "", "", "")
 	nv.concreteComponent.AddNode(node)
 	p.addBodyNodes(nv.concreteComponent.nodes)
-}
-
-func (nv *NaviComponent) AddLocations(locs []Location) {
-	for _, l := range locs {
-		nv.locations = append(nv.locations, l)
-	}
 }
 
 /* ReadNaviComponent */
@@ -249,24 +255,22 @@ func (rnv *ReadNaviComponent) addHeaderNodes(p Element) {
 	inx := rnv.getIndexOfPage(p)
 	n := []*Node{}
 	firstUrl := rnv.locations[0].GetUrl()
-	n = append(n, NewNode("link", "", ToMap("rel", "first", "href", firstUrl)))
+	n = append(n, NewNode("link", "", "rel", "first", "href", firstUrl))
 	if inx > 0 {
 		prevUrl := rnv.locations[inx-1].GetUrl()
-		pm := ToMap("rel", "prev", "href", prevUrl)
-		n = append(n, NewNode("link", "", pm))
+		n = append(n, NewNode("link", "", "rel", "prev", "href", prevUrl))
 	}
 	if inx < len(rnv.locations)-1 {
 		nextUrl := rnv.locations[inx+1].GetUrl()
-		nm := ToMap("rel", "next", "href", nextUrl)
-		n = append(n, NewNode("link", "", nm))
+		n = append(n, NewNode("link", "", "rel", "next", "href", nextUrl))
 	}
 	lastUrl := rnv.locations[len(rnv.locations)-1].GetUrl()
-	n = append(n, NewNode("link", "", ToMap("rel", "last", "href", lastUrl)))
+	n = append(n, NewNode("link", "", "rel", "last", "href", lastUrl))
 	p.addHeaderNodes(n)
 }
 
 func (rnv *ReadNaviComponent) addBodyNodes(p Element) {
-	bodyNav := NewNode("nav", "", map[string]string{})
+	bodyNav := NewNode("nav", "")
 	rnv.addFirst(p, bodyNav)
 	rnv.addPrevious(p, bodyNav)
 	rnv.addNext(p, bodyNav)
@@ -291,12 +295,6 @@ func (rnv *ReadNaviComponent) getIndexOfPage(p Element) int {
 		}
 	}
 	return -1
-}
-
-func (rnv *ReadNaviComponent) AddLocations(locs []Location) {
-	for _, l := range locs {
-		rnv.locations = append(rnv.locations, l)
-	}
 }
 
 /* disqus component */
@@ -331,7 +329,7 @@ var disqusJS = `
 
 func (dc *DisqusComponent) visitPage(p Element) {
 	js := fmt.Sprintf(disqusJS, p.GetTitle(), p.GetUrl(), p.GetDisqusId(), dc.shortname)
-	n := NewNode("script", js, ToMap("language", "javascript", "type", "text/javascript"))
+	n := NewNode("script", js, "language", "javascript", "type", "text/javascript")
 	p.addBodyNodes([]*Node{n})
 }
 
@@ -349,7 +347,7 @@ func NewMainHeaderComponent(context Context) *MainHeaderComponent {
 }
 
 func (mhc *MainHeaderComponent) visitPage(p Element) {
-	header := NewNode("header", "", ToMap("class", "headerbar"))
+	header := NewNode("header", "", "class", "headerbar")
 	inner := header.AddChild("div", "", "class", "headerbar__inner")
 	nav := inner.AddChild("nav", "", "class", "headerbar__nav")
 	nav.AddChild("a", "twitter", "href", mhc.context.GetTwitterPage(), "class", "headerbar__navelement")
@@ -369,7 +367,7 @@ func NewGalleryComponent() *GalleryComponent {
 }
 
 func (gal *GalleryComponent) visitPage(p Element) {
-	m := NewNode("main", "", ToMap("class", "maincontent"))
+	m := NewNode("main", "", "class", "maincontent")
 	inner := m.AddChild("div", "", "class", "maincontent__inner")
 	for i := 0; i < 5; i++ {
 		div := inner.AddChild("a", "", "class", "portfoliothumb", "href", "https://drewing.de")
@@ -397,7 +395,7 @@ func (crc *CopyRightComponent) visitPage(p Element) {
 Except where otherwise noted, content on this site is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/3.0/">Create Commons Attribution-NonCommercial-NoDerivs 3.0 Unported (CC BY-NC-ND 3.0) license</a>.<br>
         Soweit nicht anders explizit ausgewiesen, stehen die Inhalte auf dieser Website unter der <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/3.0/">Creative Commons Namensnennung-NichtKommerziell-KeineBearbeitung (CC BY-NC-ND 3.0)</a> Lizenz. Unless otherwise noted the author of the content on this page is <a href="https://plus.google.com/113943655600557711368?rel=author">Ingmar Drewing</a>
     </p>
-	`, ToMap())
+	`)
 	p.addBodyNodes([]*Node{n})
 }
 
@@ -407,7 +405,7 @@ type CookieNotifierComponent struct {
 }
 
 func (cnc *CookieNotifierComponent) visitPage(p Element) {
-	n := NewNode("script", cookiebar, ToMap("language", "javascript", "type", "text/javascript"))
+	n := NewNode("script", cookiebar, "language", "javascript", "type", "text/javascript")
 	p.addBodyNodes([]*Node{n})
 }
 

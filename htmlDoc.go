@@ -18,8 +18,8 @@ type Node struct {
 	text              string
 }
 
-func NewNode(tagName string, text string, attributeValueMap map[string]string) *Node {
-	return &Node{tagName, attributeValueMap, []*Node{}, text}
+func NewNode(tagName string, text string, attributes ...string) *Node {
+	return &Node{tagName, ToMap(attributes...), []*Node{}, text}
 }
 
 func (n *Node) isEmpty() bool {
@@ -58,7 +58,7 @@ func (n *Node) renderStuffed() string {
 	return tag
 }
 
-func (n *Node) addChildAsNode(child *Node) {
+func (n *Node) addNode(child *Node) {
 	n.children = append(n.children, child)
 }
 
@@ -66,7 +66,7 @@ func (n *Node) addChildAsNode(child *Node) {
 	AddChild
 */
 func (n *Node) AddChild(tagName string, text string, attributes ...string) *Node {
-	child := NewNode(tagName, text, ToMap(attributes...))
+	child := NewNode(tagName, text, attributes...)
 	n.children = append(n.children, child)
 	return child
 }
@@ -142,7 +142,7 @@ func (p *HtmlDoc) AddContentAsNode(n *Node) {
 }
 
 func (p *HtmlDoc) CreateLonelyNode(tagName string, text string, attributes ...string) *Node {
-	return NewNode(tagName, text, ToMap(attributes...))
+	return NewNode(tagName, text, attributes...)
 }
 
 func (p *HtmlDoc) AddTitle(title string) {

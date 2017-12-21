@@ -13,7 +13,7 @@ func TestNewPage(t *testing.T) {
 }
 
 func TestNodeAddChild(t *testing.T) {
-	n := NewNode("nav", "", ToMap("class", "mainNavi"))
+	n := NewNode("nav", "", "class", "mainNavi")
 	n.AddChild("a", "test", "href", "test.html")
 
 	actual := n.Render()
@@ -71,8 +71,8 @@ func TestAddContentTag(t *testing.T) {
 func TestAddNestedContentTags(t *testing.T) {
 	page := NewHtmlDoc()
 	p := page.AddContentTag("p", "")
-	a := NewNode("a", "label", ToMap("href", "test"))
-	p.addChildAsNode(a)
+	a := NewNode("a", "label", "href", "test")
+	p.addNode(a)
 
 	actual := page.Render()
 	expected := `<!doctype html><html><head></head><body><p><a href="test">label</a></p></body></html>`
@@ -83,7 +83,7 @@ func TestAddNestedContentTags(t *testing.T) {
 }
 
 func TestNodeIsEmpty(t *testing.T) {
-	a := NewNode("a", "", ToMap("href", "test"))
+	a := NewNode("a", "", "href", "test")
 
 	actual := a.isEmpty()
 	expected := true
@@ -92,7 +92,7 @@ func TestNodeIsEmpty(t *testing.T) {
 		t.Fatal("Expected ", expected, " but got ", actual)
 	}
 
-	a = NewNode("a", "wurst", ToMap("href", "test"))
+	a = NewNode("a", "wurst", "href", "test")
 
 	actual = a.isEmpty()
 	expected = false

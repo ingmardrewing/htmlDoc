@@ -13,6 +13,7 @@ type Context interface {
 	GetDisqusShortname() string
 	GetMainNavigationLocations() []Location
 	GetReadNavigationLocations() []Location
+	GetFooterNavigationLocations() []Location
 	AddComponent(c component)
 	Render(p Element) string
 }
@@ -28,7 +29,8 @@ func NewBlogContext(twitterHandle string,
 	cssUrl string,
 	disqusShortname string,
 	mainNavigationLocations []Location,
-	readNavigationLocations []Location) *BlogContext {
+	readNavigationLocations []Location,
+	footerNavigationLocations []Location) *BlogContext {
 	bc := &BlogContext{
 		twitterHandle,
 		contentSection,
@@ -42,6 +44,7 @@ func NewBlogContext(twitterHandle string,
 		disqusShortname,
 		mainNavigationLocations,
 		readNavigationLocations,
+		footerNavigationLocations,
 		[]Element{},
 		[]component{}}
 	bc.AddComponent(NewGoogleComponent(bc))
@@ -51,29 +54,31 @@ func NewBlogContext(twitterHandle string,
 	bc.AddComponent(NewTitleComponent())
 	bc.AddComponent(NewMainHeaderComponent(bc))
 	bc.AddComponent(NewGalleryComponent())
-	bc.AddComponent(NewNaviComponent(bc.GetMainNavigationLocations()))
+	bc.AddComponent(NewMainNaviComponent(bc.GetMainNavigationLocations()))
 	bc.AddComponent(NewReadNaviComponent(bc.GetReadNavigationLocations()))
 	bc.AddComponent(NewDisqusComponent(bc.GetDisqusShortname()))
 	bc.AddComponent(NewCopyRightComponent())
+	bc.AddComponent(NewFooterNaviComponent(bc.GetFooterNavigationLocations()))
 	return bc
 
 }
 
 type BlogContext struct {
-	twitterHandle           string
-	contentSection          string
-	contentTags             string
-	siteName                string
-	twitterCardType         string
-	ogType                  string
-	fbPageUrl               string
-	twitterPageUrl          string
-	cssUrl                  string
-	disqusShortname         string
-	mainNavigationLocations []Location
-	readNavigationLocations []Location
-	pages                   []Element
-	components              []component
+	twitterHandle             string
+	contentSection            string
+	contentTags               string
+	siteName                  string
+	twitterCardType           string
+	ogType                    string
+	fbPageUrl                 string
+	twitterPageUrl            string
+	cssUrl                    string
+	disqusShortname           string
+	mainNavigationLocations   []Location
+	readNavigationLocations   []Location
+	footerNavigationLocations []Location
+	pages                     []Element
+	components                []component
 }
 
 func (bc *BlogContext) AddComponent(c component) {
@@ -97,6 +102,10 @@ func (bc *BlogContext) GetMainNavigationLocations() []Location {
 
 func (bc *BlogContext) GetReadNavigationLocations() []Location {
 	return bc.readNavigationLocations
+}
+
+func (bc *BlogContext) GetFooterNavigationLocations() []Location {
+	return bc.footerNavigationLocations
 }
 
 func (bc *BlogContext) GetCssUrl() string {
