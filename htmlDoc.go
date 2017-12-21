@@ -108,16 +108,6 @@ func (p *HtmlDoc) AddBodyNode(n *Node) {
 	p.content = append(p.content, n)
 }
 
-func (p *HtmlDoc) AddContentTag(tagName string, text string, attributes ...string) *Node {
-	n := NewNode(tagName, text, attributes...)
-	p.content = append(p.content, n)
-	return n
-}
-
-func (p *HtmlDoc) AddTitle(title string) {
-	p.title = title
-}
-
 /* utils */
 
 func ToMap(namesAndValues ...string) map[string]string {
