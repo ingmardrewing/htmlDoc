@@ -187,13 +187,15 @@ func (nv *NaviComponent) visitPage(p Element) {
 	url := p.GetUrl()
 	for _, l := range nv.locations {
 		if url == l.GetUrl() {
-			nav.AddChild("span", l.GetTitle())
+			span := NewNode("span", l.GetTitle())
+			nav.AddChild(span)
 		} else {
-			nav.AddChild("a", l.GetTitle(), "href", l.GetUrl())
+			a := NewNode("a", l.GetTitle(), "href", l.GetUrl())
+			nav.AddChild(a)
 		}
 	}
 	node := NewNode("div", "", "class", nv.cssClass)
-	node.AddChild("div", "", "", "")
+	node.AddChild(nav)
 	nv.concreteComponent.AddNode(node)
 	p.addBodyNodes(nv.concreteComponent.nodes)
 }
@@ -214,40 +216,48 @@ func NewReadNaviComponent(locations []Location) *ReadNaviComponent {
 func (rnv *ReadNaviComponent) addFirst(p Element, n *Node) {
 	inx := rnv.getIndexOfPage(p)
 	if inx == 0 {
-		n.AddChild("span", "<< first")
+		span := NewNode("span", "<< first")
+		n.AddChild(span)
 	} else {
 		f := rnv.locations[0]
-		n.AddChild("a", "<< first", "href", f.GetUrl(), "rel", "first")
+		a := NewNode("a", "<< first", "href", f.GetUrl(), "rel", "first")
+		n.AddChild(a)
 	}
 }
 
 func (rnv *ReadNaviComponent) addPrevious(p Element, n *Node) {
 	inx := rnv.getIndexOfPage(p)
 	if inx == 0 {
-		n.AddChild("span", "< previous")
+		span := NewNode("span", "< previous")
+		n.AddChild(span)
 	} else {
 		p := rnv.locations[inx-1]
-		n.AddChild("a", "< previous", "href", p.GetUrl(), "rel", "prev")
+		a := NewNode("a", "< previous", "href", p.GetUrl(), "rel", "prev")
+		n.AddChild(a)
 	}
 }
 
 func (rnv *ReadNaviComponent) addNext(p Element, n *Node) {
 	inx := rnv.getIndexOfPage(p)
 	if inx == len(rnv.locations)-1 {
-		n.AddChild("span", "next >")
+		span := NewNode("span", "next >")
+		n.AddChild(span)
 	} else {
 		nx := rnv.locations[inx+1]
-		n.AddChild("a", "next >", "href", nx.GetUrl(), "rel", "next")
+		a := NewNode("a", "next >", "href", nx.GetUrl(), "rel", "next")
+		n.AddChild(a)
 	}
 }
 
 func (rnv *ReadNaviComponent) addLast(p Element, n *Node) {
 	inx := rnv.getIndexOfPage(p)
 	if inx == len(rnv.locations)-1 {
-		n.AddChild("span", "newest >>")
+		span := NewNode("span", "newest >>")
+		n.AddChild(span)
 	} else {
 		nw := rnv.locations[len(rnv.locations)-1]
-		n.AddChild("a", "neweset >>", "href", nw.GetUrl(), "rel", "last")
+		a := NewNode("a", "neweset >>", "href", nw.GetUrl(), "rel", "last")
+		n.AddChild(a)
 	}
 }
 
@@ -347,11 +357,19 @@ func NewMainHeaderComponent(context Context) *MainHeaderComponent {
 }
 
 func (mhc *MainHeaderComponent) visitPage(p Element) {
+	fb := NewNode("a", "facebook", "href", mhc.context.GetFBPageUrl(), "class", "headerbar__navelement")
+	twitter := NewNode("a", "twitter", "href", mhc.context.GetTwitterPage(), "class", "headerbar__navelement")
+
+	nav := NewNode("nav", "", "class", "headerbar__nav")
+	nav.AddChild(fb)
+	nav.AddChild(twitter)
+
+	inner := NewNode("div", "", "class", "headerbar__inner")
+	inner.AddChild(nav)
+
 	header := NewNode("header", "", "class", "headerbar")
-	inner := header.AddChild("div", "", "class", "headerbar__inner")
-	nav := inner.AddChild("nav", "", "class", "headerbar__nav")
-	nav.AddChild("a", "twitter", "href", mhc.context.GetTwitterPage(), "class", "headerbar__navelement")
-	nav.AddChild("a", "facebook", "href", mhc.context.GetFBPageUrl(), "class", "headerbar__navelement")
+	header.AddChild(inner)
+
 	p.addBodyNodes([]*Node{header})
 }
 
@@ -367,15 +385,26 @@ func NewGalleryComponent() *GalleryComponent {
 }
 
 func (gal *GalleryComponent) visitPage(p Element) {
-	m := NewNode("main", "", "class", "maincontent")
-	inner := m.AddChild("div", "", "class", "maincontent__inner")
+	inner := NewNode("div", "", "class", "maincontent__inner")
 	for i := 0; i < 5; i++ {
-		div := inner.AddChild("a", "", "class", "portfoliothumb", "href", "https://drewing.de")
-		div.AddChild("img", "", "class", "portfoliothumb__image", "src", "https://s3.amazonaws.com/drewingdeblog/blog/wp-content/uploads/2017/12/02152842/atthezoo-400x400.png")
-		label := div.AddChild("div", "", "class", "portfoliothumb__label")
-		label.AddChild("span", "At The Zoo", "class", "portfoliothumb__title")
-		label.AddChild("span", "Digital drawing", "class", "portfoliothumb__details")
+		title := NewNode("span", "At The Zoo", "class", "portfoliothumb__title")
+		subtitle := NewNode("span", "Digital drawing", "class", "portfoliothumb__details")
+
+		label := NewNode("div", "", "class", "portfoliothumb__label")
+		label.AddChild(title)
+		label.AddChild(subtitle)
+
+		img := NewNode("img", "", "class", "portfoliothumb__image", "src", "https://s3.amazonaws.com/drewingdeblog/blog/wp-content/uploads/2017/12/02152842/atthezoo-400x400.png")
+
+		div := NewNode("a", "", "class", "portfoliothumb", "href", "https://drewing.de")
+		div.AddChild(img)
+		div.AddChild(label)
+
+		inner.AddChild(div)
 	}
+
+	m := NewNode("main", "", "class", "maincontent")
+	m.AddChild(inner)
 	p.addBodyNodes([]*Node{m})
 }
 

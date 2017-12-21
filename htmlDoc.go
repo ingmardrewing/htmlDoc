@@ -58,17 +58,11 @@ func (n *Node) renderStuffed() string {
 	return tag
 }
 
-func (n *Node) addNode(child *Node) {
-	n.children = append(n.children, child)
-}
-
 /*
 	AddChild
 */
-func (n *Node) AddChild(tagName string, text string, attributes ...string) *Node {
-	child := NewNode(tagName, text, attributes...)
-	n.children = append(n.children, child)
-	return child
+func (n *Node) AddChild(node *Node) {
+	n.children = append(n.children, node)
 }
 
 func getSortedMapKeys(m map[string]string) []string {
@@ -118,7 +112,7 @@ func (p *HtmlDoc) AddMeta(attributes ...string) {
 }
 
 func (p *HtmlDoc) AddHeadTag(tagName string, text string, attributes ...string) *Node {
-	n := p.CreateLonelyNode(tagName, text, attributes...)
+	n := NewNode(tagName, text, attributes...)
 	p.AddHeadNode(n)
 	return n
 }
@@ -132,7 +126,7 @@ func (p *HtmlDoc) AddBodyNode(n *Node) {
 }
 
 func (p *HtmlDoc) AddContentTag(tagName string, text string, attributes ...string) *Node {
-	n := p.CreateLonelyNode(tagName, text, attributes...)
+	n := NewNode(tagName, text, attributes...)
 	p.content = append(p.content, n)
 	return n
 }
@@ -141,13 +135,11 @@ func (p *HtmlDoc) AddContentAsNode(n *Node) {
 	p.content = append(p.content, n)
 }
 
-func (p *HtmlDoc) CreateLonelyNode(tagName string, text string, attributes ...string) *Node {
-	return NewNode(tagName, text, attributes...)
-}
-
 func (p *HtmlDoc) AddTitle(title string) {
 	p.title = title
 }
+
+/* utils */
 
 func ToMap(namesAndValues ...string) map[string]string {
 	if len(namesAndValues)%2 != 0 {

@@ -14,7 +14,8 @@ func TestNewPage(t *testing.T) {
 
 func TestNodeAddChild(t *testing.T) {
 	n := NewNode("nav", "", "class", "mainNavi")
-	n.AddChild("a", "test", "href", "test.html")
+	a := NewNode("a", "test", "href", "test.html")
+	n.AddChild(a)
 
 	actual := n.Render()
 	expected := `<nav class="mainNavi"><a href="test.html">test</a></nav>`
@@ -28,15 +29,22 @@ func TestNewPageWithcontent(t *testing.T) {
 	page := NewHtmlDoc()
 	page.AddMeta("name", "wurst", "value", "mett")
 
+	a1 := NewNode("a", "1", "href", "page1.html")
+	a2 := NewNode("a", "2", "href", "page2.html")
+
 	nav := page.AddContentTag("nav", "", "class", "mainNav")
-	nav.AddChild("a", "1", "href", "page1.html")
-	nav.AddChild("a", "2", "href", "page2.html")
+	nav.AddChild(a1)
+	nav.AddChild(a2)
+
+	h1 := NewNode("h1", "WTF")
 
 	header := page.AddContentTag("header", "")
-	header.AddChild("h1", "WTF")
+	header.AddChild(h1)
+
+	p := NewNode("p", "Test")
 
 	main := page.AddContentTag("main", "")
-	main.AddChild("p", "Test")
+	main.AddChild(p)
 
 	actual := page.Render()
 	expected := `<!doctype html><html><head><meta name="wurst" value="mett"/></head><body><nav class="mainNav"><a href="page1.html">1</a><a href="page2.html">2</a></nav><header><h1>WTF</h1></header><main><p>Test</p></main></body></html>`
@@ -70,9 +78,11 @@ func TestAddContentTag(t *testing.T) {
 
 func TestAddNestedContentTags(t *testing.T) {
 	page := NewHtmlDoc()
+
 	p := page.AddContentTag("p", "")
+
 	a := NewNode("a", "label", "href", "test")
-	p.addNode(a)
+	p.AddChild(a)
 
 	actual := page.Render()
 	expected := `<!doctype html><html><head></head><body><p><a href="test">label</a></p></body></html>`
