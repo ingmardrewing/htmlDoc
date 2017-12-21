@@ -5,11 +5,6 @@ import (
 )
 
 /* component */
-
-type visitor interface {
-	visitPage(p Element)
-}
-
 type component interface {
 	AddNode(n *Node)
 	visitPage(p Element)

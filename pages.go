@@ -3,7 +3,7 @@ package htmlDoc
 /* location */
 type Element interface {
 	Location
-	acceptVisitor(v visitor)
+	acceptVisitor(v component)
 	addBodyNodes([]*Node)
 	addHeaderNodes([]*Node)
 	GetPublishedTime() string
@@ -103,7 +103,7 @@ func (p *Page) GetPublishedTime() string {
 	return p.PublishedTime
 }
 
-func (p *Page) acceptVisitor(v visitor) {
+func (p *Page) acceptVisitor(v component) {
 	v.visitPage(p)
 }
 
