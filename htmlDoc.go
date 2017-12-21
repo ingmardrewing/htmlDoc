@@ -2,6 +2,7 @@ package htmlDoc
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"strings"
 
@@ -11,11 +12,12 @@ import (
 /*
 	Node
 */
+
 type Node struct {
-	tagName           string
-	attributeValueMap map[string]string
-	children          []*Node
-	text              string
+	tagName  string
+	attrMap  map[string]string
+	children []*Node
+	text     string
 }
 
 func NewNode(tagName string, text string, attributes ...string) *Node {
@@ -26,36 +28,30 @@ func (n *Node) isEmpty() bool {
 	return len(n.children) == 0 && n.text == ""
 }
 
+func (n *Node) renderAttributes() string {
+	attr := []string{}
+	keys := getSortedMapKeys(n.attrMap)
+	for _, k := range keys {
+		attr = append(attr, fmt.Sprintf(`%s="%s"`, k, n.attrMap[k]))
+	}
+	return strings.Join(attr, " ")
+}
+
 func (n *Node) Render() string {
 	if n.isEmpty() {
-		return n.renderEmpty()
+		return fmt.Sprintf("<%s %s />", n.tagName, n.renderAttributes())
 	}
-	return n.renderStuffed()
+	start := fmt.Sprintf("<%s %s>", n.tagName, n.renderAttributes())
+	end := fmt.Sprintf("</%s>", n.tagName)
+	return start + n.renderChildren() + n.text + end
 }
 
-func (n *Node) renderEmpty() string {
-	tag := "<" + n.tagName
-	keys := getSortedMapKeys(n.attributeValueMap)
-	for _, k := range keys {
-		tag += fmt.Sprintf(` %s="%s"`, k, n.attributeValueMap[k])
-	}
-	tag += " />"
-	return tag
-}
-
-func (n *Node) renderStuffed() string {
-	tag := "<" + n.tagName
-	keys := getSortedMapKeys(n.attributeValueMap)
-	for _, k := range keys {
-		tag += fmt.Sprintf(` %s="%s"`, k, n.attributeValueMap[k])
-	}
-	tag += ">"
+func (n *Node) renderChildren() string {
+	html := ""
 	for _, child := range n.children {
-		tag += child.Render()
+		html += child.Render()
 	}
-	tag += n.text
-	tag += "</" + n.tagName + ">"
-	return tag
+	return html
 }
 
 func (n *Node) AddChild(node *Node) {
@@ -112,7 +108,7 @@ func (p *HtmlDoc) AddBodyNode(n *Node) {
 
 func ToMap(namesAndValues ...string) map[string]string {
 	if len(namesAndValues)%2 != 0 {
-		panic("Wrong parameter count")
+		log.Fatalln("Wrong parameter count at ToMap")
 	}
 	m := map[string]string{}
 	for i := 0; i < len(namesAndValues); i += 2 {
