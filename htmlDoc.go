@@ -58,20 +58,8 @@ func (n *Node) renderStuffed() string {
 	return tag
 }
 
-/*
-	AddChild
-*/
 func (n *Node) AddChild(node *Node) {
 	n.children = append(n.children, node)
-}
-
-func getSortedMapKeys(m map[string]string) []string {
-	var keys []string
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
 }
 
 /*
@@ -108,13 +96,8 @@ func (p *HtmlDoc) populateDom() {
 }
 
 func (p *HtmlDoc) AddMeta(attributes ...string) {
-	p.AddHeadTag("meta", "", attributes...)
-}
-
-func (p *HtmlDoc) AddHeadTag(tagName string, text string, attributes ...string) *Node {
-	n := NewNode(tagName, text, attributes...)
-	p.AddHeadNode(n)
-	return n
+	m := NewNode("meta", "", attributes...)
+	p.AddHeadNode(m)
 }
 
 func (p *HtmlDoc) AddHeadNode(n *Node) {
@@ -129,10 +112,6 @@ func (p *HtmlDoc) AddContentTag(tagName string, text string, attributes ...strin
 	n := NewNode(tagName, text, attributes...)
 	p.content = append(p.content, n)
 	return n
-}
-
-func (p *HtmlDoc) AddContentAsNode(n *Node) {
-	p.content = append(p.content, n)
 }
 
 func (p *HtmlDoc) AddTitle(title string) {
@@ -152,4 +131,13 @@ func ToMap(namesAndValues ...string) map[string]string {
 		m[n] = v
 	}
 	return m
+}
+
+func getSortedMapKeys(m map[string]string) []string {
+	var keys []string
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }
