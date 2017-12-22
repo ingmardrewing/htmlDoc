@@ -33,6 +33,17 @@ type Node struct {
 	text     string
 }
 
+func (n *Node) Render() string {
+	if n.isEmpty() {
+		return n.renderEmpty()
+	}
+	return n.renderStuffed()
+}
+
+func (n *Node) AddChild(node *Node) {
+	n.children = append(n.children, node)
+}
+
 func (n *Node) isEmpty() bool {
 	return len(n.children) == 0 && n.text == ""
 }
@@ -56,23 +67,12 @@ func (n *Node) renderStuffed() string {
 	return start + n.renderChildren() + n.text + end
 }
 
-func (n *Node) Render() string {
-	if n.isEmpty() {
-		return n.renderEmpty()
-	}
-	return n.renderStuffed()
-}
-
 func (n *Node) renderChildren() string {
 	html := ""
 	for _, child := range n.children {
 		html += child.Render()
 	}
 	return html
-}
-
-func (n *Node) AddChild(node *Node) {
-	n.children = append(n.children, node)
 }
 
 /*
