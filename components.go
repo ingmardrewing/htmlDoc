@@ -10,57 +10,29 @@ type component interface {
 	visitPage(p Element)
 }
 
-type concreteComponent struct {
+type abstractComponent struct {
 	nodes         []*Node
 	visitFunction func(p Element)
 }
 
-func (m *concreteComponent) AddNode(n *Node) {
+func (m *abstractComponent) AddNode(n *Node) {
 	m.nodes = append(m.nodes, n)
 }
 
-func (m *concreteComponent) AddTag(tagName string, text string, attributes ...string) {
+func (m *abstractComponent) AddTag(tagName string, text string, attributes ...string) {
 	m.AddNode(NewNode(tagName, text, attributes...))
 }
 
-func (m *concreteComponent) AddMeta(metaData ...string) {
+func (m *abstractComponent) AddMeta(metaData ...string) {
 	n := NewNode("meta", "", metaData...)
 	m.AddNode(n)
 }
 
-func (m *concreteComponent) SetVisitFunction(f func(p Element)) {
-	m.visitFunction = f
-}
-
-func (m *concreteComponent) visitPage(p Element) {
-	m.visitFunction(p)
-}
-
-/* HeaderComponent */
-
-type HeaderComponent struct {
-	concreteComponent
-}
-
-func (hc *HeaderComponent) visitPage(p Element) {
-	hc.concreteComponent.visitPage(p)
-	p.addHeaderNodes(hc.concreteComponent.nodes)
-}
-
-/* BodyComponent */
-
-type BodyComponent struct {
-	concreteComponent
-}
-
-func (hc *BodyComponent) visitPage(p Element) {
-	hc.concreteComponent.visitPage(p)
-	p.addBodyNodes(hc.concreteComponent.nodes)
-}
+func (m *abstractComponent) visitPage(p Element) {}
 
 /* fb component */
 type FBComponent struct {
-	concreteComponent
+	abstractComponent
 	context Context
 }
 
@@ -81,13 +53,13 @@ func (fbc *FBComponent) visitPage(p Element) {
 	fbc.AddMeta("property", "article:modified_time", "content", p.GetPublishedTime())
 	fbc.AddMeta("property", "article:section", "content", fbc.context.GetContentSection())
 	fbc.AddMeta("property", "article:tag", "content", fbc.context.GetContentTags())
-	p.addHeaderNodes(fbc.concreteComponent.nodes)
+	p.addHeaderNodes(fbc.abstractComponent.nodes)
 }
 
 /* google component */
 
 type GoogleComponent struct {
-	concreteComponent
+	abstractComponent
 	context Context
 }
 
@@ -101,13 +73,13 @@ func (goo *GoogleComponent) visitPage(p Element) {
 	goo.AddMeta("itemprop", "name", "content", p.GetTitle())
 	goo.AddMeta("itemprop", "description", "content", p.GetDescription())
 	goo.AddMeta("itemprop", "image", "content", p.GetImageUrl())
-	p.addHeaderNodes(goo.concreteComponent.nodes)
+	p.addHeaderNodes(goo.abstractComponent.nodes)
 }
 
 /* twitter component */
 
 type TwitterComponent struct {
-	concreteComponent
+	abstractComponent
 	context Context
 }
 
@@ -124,12 +96,12 @@ func (tw *TwitterComponent) visitPage(p Element) {
 	tw.AddMeta("name", "t:text:description", "content", p.GetDescription())
 	tw.AddMeta("name", "t:creator", "content", tw.context.GetTwitterHandle())
 	tw.AddMeta("name", "t:image", "content", p.GetImageUrl())
-	p.addHeaderNodes(tw.concreteComponent.nodes)
+	p.addHeaderNodes(tw.abstractComponent.nodes)
 }
 
 /* title component */
 type TitleComponent struct {
-	concreteComponent
+	abstractComponent
 }
 
 func NewTitleComponent() *TitleComponent {
@@ -138,13 +110,13 @@ func NewTitleComponent() *TitleComponent {
 
 func (tc *TitleComponent) visitPage(p Element) {
 	tc.AddTag("title", p.GetTitle())
-	p.addHeaderNodes(tc.concreteComponent.nodes)
+	p.addHeaderNodes(tc.abstractComponent.nodes)
 }
 
 /* css link component */
 
 type CssLinkComponent struct {
-	concreteComponent
+	abstractComponent
 	url string
 }
 
@@ -156,7 +128,7 @@ func NewCssLinkComponent(url string) *CssLinkComponent {
 
 func (clc *CssLinkComponent) visitPage(p Element) {
 	clc.AddTag("link", "", "href", clc.url, "rel", "stylesheet", "type", "text/css")
-	p.addHeaderNodes(clc.concreteComponent.nodes)
+	p.addHeaderNodes(clc.abstractComponent.nodes)
 }
 
 /* NaviComponent */
@@ -177,7 +149,7 @@ func newNaviComponent(locs []Location, class string) *NaviComponent {
 }
 
 type NaviComponent struct {
-	concreteComponent
+	abstractComponent
 	locations []Location
 	cssClass  string
 }
@@ -196,14 +168,14 @@ func (nv *NaviComponent) visitPage(p Element) {
 	}
 	node := NewNode("div", "", "class", nv.cssClass)
 	node.AddChild(nav)
-	nv.concreteComponent.AddNode(node)
-	p.addBodyNodes(nv.concreteComponent.nodes)
+	nv.abstractComponent.AddNode(node)
+	p.addBodyNodes(nv.abstractComponent.nodes)
 }
 
 /* ReadNaviComponent */
 
 type ReadNaviComponent struct {
-	concreteComponent
+	abstractComponent
 	locations []Location
 }
 
@@ -285,8 +257,8 @@ func (rnv *ReadNaviComponent) addBodyNodes(p Element) {
 	rnv.addPrevious(p, bodyNav)
 	rnv.addNext(p, bodyNav)
 	rnv.addLast(p, bodyNav)
-	rnv.concreteComponent.AddNode(bodyNav)
-	p.addBodyNodes(rnv.concreteComponent.nodes)
+	rnv.abstractComponent.AddNode(bodyNav)
+	p.addBodyNodes(rnv.abstractComponent.nodes)
 }
 
 func (rnv *ReadNaviComponent) visitPage(p Element) {
@@ -310,7 +282,7 @@ func (rnv *ReadNaviComponent) getIndexOfPage(p Element) int {
 /* disqus component */
 
 type DisqusComponent struct {
-	concreteComponent
+	abstractComponent
 	shortname string
 }
 
@@ -346,7 +318,7 @@ func (dc *DisqusComponent) visitPage(p Element) {
 /* main  header component */
 
 type MainHeaderComponent struct {
-	concreteComponent
+	abstractComponent
 	context Context
 }
 
@@ -376,7 +348,7 @@ func (mhc *MainHeaderComponent) visitPage(p Element) {
 /* gallery component */
 
 type GalleryComponent struct {
-	concreteComponent
+	abstractComponent
 }
 
 func NewGalleryComponent() *GalleryComponent {
@@ -410,7 +382,7 @@ func (gal *GalleryComponent) visitPage(p Element) {
 
 /* copyright component */
 type CopyRightComponent struct {
-	concreteComponent
+	abstractComponent
 }
 
 func NewCopyRightComponent() *CopyRightComponent {
