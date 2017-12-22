@@ -27,7 +27,8 @@ func TestNodeAddChild(t *testing.T) {
 
 func TestNewPageWithcontent(t *testing.T) {
 	page := NewHtmlDoc()
-	page.AddMeta("name", "wurst", "value", "mett")
+	m := NewNode("meta", "", "name", "wurst", "value", "mett")
+	page.AddHeadNode(m)
 
 	a1 := NewNode("a", "1", "href", "page1.html")
 	a2 := NewNode("a", "2", "href", "page2.html")
@@ -53,16 +54,6 @@ func TestNewPageWithcontent(t *testing.T) {
 	expected := `<!doctype html><html><head><meta name="wurst" value="mett"/></head><body><nav class="mainNav"><a href="page1.html">1</a><a href="page2.html">2</a></nav><header><h1>WTF</h1></header><main><p>Test</p></main></body></html>`
 
 	if actual != expected {
-		t.Fatal("Expected ", expected, " but got ", actual)
-	}
-}
-
-func TestAddMeta(t *testing.T) {
-	page := NewHtmlDoc()
-	page.AddMeta("name", "testname", "value", "testvalue")
-	actual := page.Render()
-	expected := `<!doctype html><html><head><meta name="testname" value="testvalue"/></head><body></body></html>`
-	if expected != actual {
 		t.Fatal("Expected ", expected, " but got ", actual)
 	}
 }

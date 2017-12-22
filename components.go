@@ -19,15 +19,6 @@ func (m *abstractComponent) AddNode(n *Node) {
 	m.nodes = append(m.nodes, n)
 }
 
-func (m *abstractComponent) AddTag(tagName string, text string, attributes ...string) {
-	m.AddNode(NewNode(tagName, text, attributes...))
-}
-
-func (m *abstractComponent) AddMeta(metaData ...string) {
-	n := NewNode("meta", "", metaData...)
-	m.AddNode(n)
-}
-
 func (m *abstractComponent) visitPage(p Element) {}
 
 /* fb component */
@@ -43,17 +34,19 @@ func NewFBComponent(context Context) *FBComponent {
 }
 
 func (fbc *FBComponent) visitPage(p Element) {
-	fbc.AddMeta("property", "og:title", "content", p.GetTitle())
-	fbc.AddMeta("property", "og:url", "content", p.GetUrl())
-	fbc.AddMeta("property", "og:image", "content", p.GetImageUrl())
-	fbc.AddMeta("property", "og:description", "content", p.GetDescription())
-	fbc.AddMeta("property", "og:site_name", "content", fbc.context.GetSiteName())
-	fbc.AddMeta("property", "og:type", "content", fbc.context.GetOGType())
-	fbc.AddMeta("property", "article:published_time", "content", p.GetPublishedTime())
-	fbc.AddMeta("property", "article:modified_time", "content", p.GetPublishedTime())
-	fbc.AddMeta("property", "article:section", "content", fbc.context.GetContentSection())
-	fbc.AddMeta("property", "article:tag", "content", fbc.context.GetContentTags())
-	p.addHeaderNodes(fbc.abstractComponent.nodes)
+	m := []*Node{
+		NewNode("meta", "", "property", "og:title", "content", p.GetTitle()),
+		NewNode("meta", "", "property", "og:url", "content", p.GetUrl()),
+		NewNode("meta", "", "property", "og:image", "content", p.GetImageUrl()),
+		NewNode("meta", "", "property", "og:description", "content", p.GetDescription()),
+		NewNode("meta", "", "property", "og:site_name", "content", fbc.context.GetSiteName()),
+		NewNode("meta", "", "property", "og:type", "content", fbc.context.GetOGType()),
+		NewNode("meta", "", "property", "article:published_time", "content", p.GetPublishedTime()),
+		NewNode("meta", "", "property", "article:modified_time", "content", p.GetPublishedTime()),
+		NewNode("meta", "", "property", "article:section", "content", fbc.context.GetContentSection()),
+		NewNode("meta", "", "property", "article:tag", "content", fbc.context.GetContentTags())}
+
+	p.addHeaderNodes(m)
 }
 
 /* google component */
@@ -70,10 +63,11 @@ func NewGoogleComponent(context Context) *GoogleComponent {
 }
 
 func (goo *GoogleComponent) visitPage(p Element) {
-	goo.AddMeta("itemprop", "name", "content", p.GetTitle())
-	goo.AddMeta("itemprop", "description", "content", p.GetDescription())
-	goo.AddMeta("itemprop", "image", "content", p.GetImageUrl())
-	p.addHeaderNodes(goo.abstractComponent.nodes)
+	m := []*Node{
+		NewNode("meta", "", "itemprop", "name", "content", p.GetTitle()),
+		NewNode("meta", "", "itemprop", "description", "content", p.GetDescription()),
+		NewNode("meta", "", "itemprop", "image", "content", p.GetImageUrl())}
+	p.addHeaderNodes(m)
 }
 
 /* twitter component */
@@ -90,13 +84,14 @@ func NewTwitterComponent(context Context) *TwitterComponent {
 }
 
 func (tw *TwitterComponent) visitPage(p Element) {
-	tw.AddMeta("name", "t:card", "content", tw.context.GetTwitterCardType())
-	tw.AddMeta("name", "t:site", "content", tw.context.GetTwitterHandle())
-	tw.AddMeta("name", "t:title", "content", p.GetTitle())
-	tw.AddMeta("name", "t:text:description", "content", p.GetDescription())
-	tw.AddMeta("name", "t:creator", "content", tw.context.GetTwitterHandle())
-	tw.AddMeta("name", "t:image", "content", p.GetImageUrl())
-	p.addHeaderNodes(tw.abstractComponent.nodes)
+	m := []*Node{
+		NewNode("meta", "", "name", "t:card", "content", tw.context.GetTwitterCardType()),
+		NewNode("meta", "", "name", "t:site", "content", tw.context.GetTwitterHandle()),
+		NewNode("meta", "", "name", "t:title", "content", p.GetTitle()),
+		NewNode("meta", "", "name", "t:text:description", "content", p.GetDescription()),
+		NewNode("meta", "", "name", "t:creator", "content", tw.context.GetTwitterHandle()),
+		NewNode("meta", "", "name", "t:image", "content", p.GetImageUrl())}
+	p.addHeaderNodes(m)
 }
 
 /* title component */
@@ -109,7 +104,8 @@ func NewTitleComponent() *TitleComponent {
 }
 
 func (tc *TitleComponent) visitPage(p Element) {
-	tc.AddTag("title", p.GetTitle())
+	title := NewNode("title", p.GetTitle())
+	tc.AddNode(title)
 	p.addHeaderNodes(tc.abstractComponent.nodes)
 }
 
@@ -127,7 +123,8 @@ func NewCssLinkComponent(url string) *CssLinkComponent {
 }
 
 func (clc *CssLinkComponent) visitPage(p Element) {
-	clc.AddTag("link", "", "href", clc.url, "rel", "stylesheet", "type", "text/css")
+	link := NewNode("link", "", "href", clc.url, "rel", "stylesheet", "type", "text/css")
+	clc.AddNode(link)
 	p.addHeaderNodes(clc.abstractComponent.nodes)
 }
 

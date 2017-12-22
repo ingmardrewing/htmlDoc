@@ -108,11 +108,6 @@ func (p *HtmlDoc) populateDom() {
 	}
 }
 
-func (p *HtmlDoc) AddMeta(attributes ...string) {
-	m := NewNode("meta", "", attributes...)
-	p.AddHeadNode(m)
-}
-
 func (p *HtmlDoc) AddHeadNode(n *Node) {
 	p.head = append(p.head, n)
 }
