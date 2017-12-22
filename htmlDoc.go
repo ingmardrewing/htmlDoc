@@ -13,15 +13,24 @@ import (
 	Node
 */
 
+func NewNode(tagName string, text string, attributes ...string) *Node {
+	if len(attributes)%2 != 0 {
+		log.Fatalln("Wrong attribute count at NewNode")
+	}
+	m := map[string]string{}
+	for i := 0; i < len(attributes); i += 2 {
+		n := attributes[i]
+		v := attributes[i+1]
+		m[n] = v
+	}
+	return &Node{tagName, m, []*Node{}, text}
+}
+
 type Node struct {
 	tagName  string
 	attrMap  map[string]string
 	children []*Node
 	text     string
-}
-
-func NewNode(tagName string, text string, attributes ...string) *Node {
-	return &Node{tagName, ToMap(attributes...), []*Node{}, text}
 }
 
 func (n *Node) isEmpty() bool {
@@ -110,19 +119,4 @@ func (p *HtmlDoc) AddHeadNode(n *Node) {
 
 func (p *HtmlDoc) AddBodyNode(n *Node) {
 	p.content = append(p.content, n)
-}
-
-/* utils */
-
-func ToMap(namesAndValues ...string) map[string]string {
-	if len(namesAndValues)%2 != 0 {
-		log.Fatalln("Wrong parameter count at ToMap")
-	}
-	m := map[string]string{}
-	for i := 0; i < len(namesAndValues); i += 2 {
-		n := namesAndValues[i]
-		v := namesAndValues[i+1]
-		m[n] = v
-	}
-	return m
 }
