@@ -30,20 +30,28 @@ func (n *Node) isEmpty() bool {
 
 func (n *Node) renderAttributes() string {
 	attr := []string{}
-	keys := getSortedMapKeys(n.attrMap)
-	for _, k := range keys {
-		attr = append(attr, fmt.Sprintf(`%s="%s"`, k, n.attrMap[k]))
+	for k, v := range n.attrMap {
+		attr = append(attr, fmt.Sprintf(`%s="%s"`, k, v))
 	}
+	sort.Strings(attr)
 	return strings.Join(attr, " ")
+}
+
+func (n *Node) renderEmpty() string {
+	return fmt.Sprintf("<%s %s />", n.tagName, n.renderAttributes())
+}
+
+func (n *Node) renderStuffed() string {
+	start := fmt.Sprintf("<%s %s>", n.tagName, n.renderAttributes())
+	end := fmt.Sprintf("</%s>", n.tagName)
+	return start + n.renderChildren() + n.text + end
 }
 
 func (n *Node) Render() string {
 	if n.isEmpty() {
-		return fmt.Sprintf("<%s %s />", n.tagName, n.renderAttributes())
+		return n.renderEmpty()
 	}
-	start := fmt.Sprintf("<%s %s>", n.tagName, n.renderAttributes())
-	end := fmt.Sprintf("</%s>", n.tagName)
-	return start + n.renderChildren() + n.text + end
+	return n.renderStuffed()
 }
 
 func (n *Node) renderChildren() string {
@@ -117,13 +125,4 @@ func ToMap(namesAndValues ...string) map[string]string {
 		m[n] = v
 	}
 	return m
-}
-
-func getSortedMapKeys(m map[string]string) []string {
-	var keys []string
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
 }
