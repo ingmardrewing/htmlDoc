@@ -8,30 +8,36 @@ type Element interface {
 	addHeaderNodes([]*Node)
 	GetPublishedTime() string
 	GetDescription() string
+	GetContent() string
 	GetImageUrl() string
 	GetDisqusId() string
 	Render() string
 }
 
 type Location interface {
-	GetUrl() string
+	GetPath() string
+	GetDomain() string
 	GetTitle() string
 	GetThumbnailUrl() string
 	GetFsPath() string
 }
 
-func NewLocation(url, title, thumbnailUrl, fsPath, fsFilename string) *Loc {
-	return &Loc{url, title, thumbnailUrl, fsPath, fsFilename}
+func NewLocation(url, prodDomain, title, thumbnailUrl, fsPath, fsFilename string) *Loc {
+	return &Loc{url, prodDomain, title, thumbnailUrl, fsPath, fsFilename}
 }
 
 type Loc struct {
 	url          string
+	prodDomain   string
 	title        string
 	thumbnailUrl string
 	fsPath       string
 	fsFilename   string
 }
 
+func (l *Loc) GetDomain() string {
+	return l.prodDomain
+}
 func (l *Loc) GetFsPath() string {
 	return l.fsPath
 }
@@ -40,7 +46,7 @@ func (l *Loc) GetFsFilename() string {
 	return l.fsFilename
 }
 
-func (l *Loc) GetUrl() string {
+func (l *Loc) GetPath() string {
 	return l.url
 }
 
@@ -58,6 +64,7 @@ type Page struct {
 	Loc
 	doc           *HtmlDoc
 	id            string
+	Content       string
 	Description   string
 	ImageUrl      string
 	PublishedTime string
@@ -65,18 +72,20 @@ type Page struct {
 }
 
 func NewPage(
-	id, title, description,
-	imageUrl, thumbUrl, path, filename,
+	id, title, description, content,
+	imageUrl, thumbUrl, path, prodDomain, filename,
 	publishedTime, disqusId string) *Page {
 	p := &Page{
 		id:            id,
 		Description:   description,
+		Content:       content,
 		ImageUrl:      imageUrl,
 		PublishedTime: publishedTime,
 		DisqusId:      disqusId,
 		doc:           NewHtmlDoc()}
 	p.Loc.title = title
 	p.Loc.url = path + filename
+	p.Loc.prodDomain = prodDomain
 	p.Loc.thumbnailUrl = thumbUrl
 	p.Loc.fsPath = path
 	p.Loc.fsFilename = filename
@@ -89,6 +98,10 @@ func (p *Page) Render() string {
 
 func (p *Page) GetDisqusId() string {
 	return p.DisqusId
+}
+
+func (p *Page) GetContent() string {
+	return p.Content
 }
 
 func (p *Page) GetDescription() string {

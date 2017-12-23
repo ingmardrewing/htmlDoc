@@ -23,7 +23,7 @@ func NewFBComponent(context Context) *FBComponent {
 func (fbc *FBComponent) visitPage(p Element) {
 	m := []*Node{
 		NewNode("meta", "", "property", "og:title", "content", p.GetTitle()),
-		NewNode("meta", "", "property", "og:url", "content", p.GetUrl()),
+		NewNode("meta", "", "property", "og:url", "content", p.GetPath()),
 		NewNode("meta", "", "property", "og:image", "content", p.GetImageUrl()),
 		NewNode("meta", "", "property", "og:description", "content", p.GetDescription()),
 		NewNode("meta", "", "property", "og:site_name", "content", fbc.context.GetSiteName()),
@@ -132,13 +132,13 @@ type NaviComponent struct {
 
 func (nv *NaviComponent) visitPage(p Element) {
 	nav := NewNode("nav", "")
-	url := p.GetUrl()
+	url := p.GetPath()
 	for _, l := range nv.locations {
-		if url == l.GetUrl() {
+		if url == l.GetPath() {
 			span := NewNode("span", l.GetTitle())
 			nav.AddChild(span)
 		} else {
-			a := NewNode("a", l.GetTitle(), "href", l.GetUrl())
+			a := NewNode("a", l.GetTitle(), "href", l.GetPath())
 			nav.AddChild(a)
 		}
 	}
@@ -166,7 +166,7 @@ func (rnv *ReadNaviComponent) addFirst(p Element, n *Node) {
 		n.AddChild(span)
 	} else {
 		f := rnv.locations[0]
-		a := NewNode("a", "<< first", "href", f.GetUrl(), "rel", "first")
+		a := NewNode("a", "<< first", "href", f.GetPath(), "rel", "first")
 		n.AddChild(a)
 	}
 }
@@ -178,7 +178,7 @@ func (rnv *ReadNaviComponent) addPrevious(p Element, n *Node) {
 		n.AddChild(span)
 	} else {
 		p := rnv.locations[inx-1]
-		a := NewNode("a", "< previous", "href", p.GetUrl(), "rel", "prev")
+		a := NewNode("a", "< previous", "href", p.GetPath(), "rel", "prev")
 		n.AddChild(a)
 	}
 }
@@ -190,7 +190,7 @@ func (rnv *ReadNaviComponent) addNext(p Element, n *Node) {
 		n.AddChild(span)
 	} else {
 		nx := rnv.locations[inx+1]
-		a := NewNode("a", "next >", "href", nx.GetUrl(), "rel", "next")
+		a := NewNode("a", "next >", "href", nx.GetPath(), "rel", "next")
 		n.AddChild(a)
 	}
 }
@@ -202,7 +202,7 @@ func (rnv *ReadNaviComponent) addLast(p Element, n *Node) {
 		n.AddChild(span)
 	} else {
 		nw := rnv.locations[len(rnv.locations)-1]
-		a := NewNode("a", "neweset >>", "href", nw.GetUrl(), "rel", "last")
+		a := NewNode("a", "neweset >>", "href", nw.GetPath(), "rel", "last")
 		n.AddChild(a)
 	}
 }
@@ -210,17 +210,17 @@ func (rnv *ReadNaviComponent) addLast(p Element, n *Node) {
 func (rnv *ReadNaviComponent) addHeaderNodes(p Element) {
 	inx := rnv.getIndexOfPage(p)
 	n := []*Node{}
-	firstUrl := rnv.locations[0].GetUrl()
+	firstUrl := rnv.locations[0].GetPath()
 	n = append(n, NewNode("link", "", "rel", "first", "href", firstUrl))
 	if inx > 0 {
-		prevUrl := rnv.locations[inx-1].GetUrl()
+		prevUrl := rnv.locations[inx-1].GetPath()
 		n = append(n, NewNode("link", "", "rel", "prev", "href", prevUrl))
 	}
 	if inx < len(rnv.locations)-1 {
-		nextUrl := rnv.locations[inx+1].GetUrl()
+		nextUrl := rnv.locations[inx+1].GetPath()
 		n = append(n, NewNode("link", "", "rel", "next", "href", nextUrl))
 	}
-	lastUrl := rnv.locations[len(rnv.locations)-1].GetUrl()
+	lastUrl := rnv.locations[len(rnv.locations)-1].GetPath()
 	n = append(n, NewNode("link", "", "rel", "last", "href", lastUrl))
 	p.addHeaderNodes(n)
 }
@@ -245,7 +245,7 @@ func (rnv *ReadNaviComponent) visitPage(p Element) {
 
 func (rnv *ReadNaviComponent) getIndexOfPage(p Element) int {
 	for i, l := range rnv.locations {
-		if l.GetUrl() == p.GetUrl() {
+		if l.GetPath() == p.GetPath() {
 			return i
 		}
 	}
@@ -265,26 +265,28 @@ func NewDisqusComponent(shortname string) *DisqusComponent {
 }
 
 var disqusJS = `
-<div id="disqus_thread"></div>
-<script>
-    var disqus_config = function () {
-		this.page.title= "%s";
-    	this.page.url = '%s';
-		this.page.identifier =  '%s';
-    };
-    (function() {
-        var d = document, s = d.createElement('script');
-        s.src = 'https://%s.disqus.com/embed.js';
-        s.setAttribute('data-timestamp', +new Date());
-        (d.head || d.body).appendChild(s);
-    })();
-</script>
+var disqus_config = function () {
+	this.page.title= "%s";
+	this.page.url = '%s';
+	this.page.identifier =  '%s';
+};
+(function() {
+	var d = document, s = d.createElement('script');
+	s.src = 'https://%s.disqus.com/embed.js';
+	s.setAttribute('data-timestamp', +new Date());
+	(d.head || d.body).appendChild(s);
+})();
 `
 
 func (dc *DisqusComponent) visitPage(p Element) {
-	js := fmt.Sprintf(disqusJS, p.GetTitle(), p.GetUrl(), p.GetDisqusId(), dc.shortname)
-	n := NewNode("script", js, "language", "javascript", "type", "text/javascript")
-	p.addBodyNodes([]*Node{n})
+	js := fmt.Sprintf(
+		disqusJS, p.GetTitle(), p.GetDomain()+p.GetPath(),
+		p.GetDisqusId(), dc.shortname)
+	n1 := NewNode("div", " ", "id", "disqus_thread")
+	n2 := NewNode("script", js,
+		"language", "javascript",
+		"type", "text/javascript")
+	p.addBodyNodes([]*Node{n1, n2})
 }
 
 /* main  header component */
@@ -314,6 +316,18 @@ func (mhc *MainHeaderComponent) visitPage(p Element) {
 	header.AddChild(inner)
 
 	p.addBodyNodes([]*Node{header})
+}
+
+/* content component */
+type ContentComponent struct{}
+
+func NewContentComponent() *ContentComponent {
+	return new(ContentComponent)
+}
+
+func (crc *ContentComponent) visitPage(p Element) {
+	n := NewNode("main", p.GetContent())
+	p.addBodyNodes([]*Node{n})
 }
 
 /* gallery component */
