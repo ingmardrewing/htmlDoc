@@ -2,15 +2,36 @@ package htmlDoc
 
 import (
 	"fmt"
+	"strings"
 )
 
 /* component */
 type component interface {
 	visitPage(p Element)
+	GetCss() string
+}
+
+type abstractComponent struct{}
+
+func (ac *abstractComponent) GetCss() string {
+	return ""
+}
+
+/* wrapper */
+type wrapper struct{}
+
+func (cw *wrapper) wrap(n *Node, addedclasses ...string) *Node {
+	inner := NewNode("div", "", "class", "wrapperInner")
+	inner.AddChild(n)
+	classes := "wrapperOuter " + strings.Join(addedclasses, " ")
+	wrapperNode := NewNode("div", "", "class", classes)
+	wrapperNode.AddChild(inner)
+	return wrapperNode
 }
 
 /* fb component */
 type FBComponent struct {
+	abstractComponent
 	context Context
 }
 
@@ -39,6 +60,7 @@ func (fbc *FBComponent) visitPage(p Element) {
 /* google component */
 
 type GoogleComponent struct {
+	abstractComponent
 	context Context
 }
 
@@ -59,6 +81,7 @@ func (goo *GoogleComponent) visitPage(p Element) {
 /* twitter component */
 
 type TwitterComponent struct {
+	abstractComponent
 	context Context
 }
 
@@ -80,7 +103,9 @@ func (tw *TwitterComponent) visitPage(p Element) {
 }
 
 /* title component */
-type TitleComponent struct{}
+type TitleComponent struct {
+	abstractComponent
+}
 
 func NewTitleComponent() *TitleComponent {
 	return new(TitleComponent)
@@ -94,12 +119,13 @@ func (tc *TitleComponent) visitPage(p Element) {
 /* css link component */
 
 type CssLinkComponent struct {
+	abstractComponent
 	url string
 }
 
 func NewCssLinkComponent(url string) *CssLinkComponent {
 	clc := new(CssLinkComponent)
-	clc.url = url
+	clc.url = "/drewing2018" + url
 	return clc
 }
 
@@ -126,6 +152,7 @@ func newNaviComponent(locs []Location, class string) *NaviComponent {
 }
 
 type NaviComponent struct {
+	wrapper
 	locations []Location
 	cssClass  string
 }
@@ -144,12 +171,18 @@ func (nv *NaviComponent) visitPage(p Element) {
 	}
 	node := NewNode("div", "", "class", nv.cssClass)
 	node.AddChild(nav)
-	p.addBodyNodes([]*Node{node})
+	wn := nv.wrap(node)
+	p.addBodyNodes([]*Node{wn})
+}
+
+func (nv *NaviComponent) GetCss() string {
+	return ""
 }
 
 /* ReadNaviComponent */
 
 type ReadNaviComponent struct {
+	wrapper
 	locations []Location
 }
 
@@ -231,7 +264,8 @@ func (rnv *ReadNaviComponent) addBodyNodes(p Element) {
 	rnv.addPrevious(p, bodyNav)
 	rnv.addNext(p, bodyNav)
 	rnv.addLast(p, bodyNav)
-	p.addBodyNodes([]*Node{bodyNav})
+	wn := rnv.wrap(bodyNav)
+	p.addBodyNodes([]*Node{wn})
 }
 
 func (rnv *ReadNaviComponent) visitPage(p Element) {
@@ -255,6 +289,7 @@ func (rnv *ReadNaviComponent) getIndexOfPage(p Element) int {
 /* disqus component */
 
 type DisqusComponent struct {
+	wrapper
 	shortname string
 }
 
@@ -262,6 +297,10 @@ func NewDisqusComponent(shortname string) *DisqusComponent {
 	d := new(DisqusComponent)
 	d.shortname = shortname
 	return d
+}
+
+func (dc *DisqusComponent) GetCss() string {
+	return ""
 }
 
 var disqusJS = `
@@ -286,12 +325,14 @@ func (dc *DisqusComponent) visitPage(p Element) {
 	n2 := NewNode("script", js,
 		"language", "javascript",
 		"type", "text/javascript")
-	p.addBodyNodes([]*Node{n1, n2})
+	wn1 := dc.wrap(n1)
+	p.addBodyNodes([]*Node{wn1, n2})
 }
 
 /* main  header component */
 
 type MainHeaderComponent struct {
+	wrapper
 	context Context
 }
 
@@ -302,37 +343,97 @@ func NewMainHeaderComponent(context Context) *MainHeaderComponent {
 }
 
 func (mhc *MainHeaderComponent) visitPage(p Element) {
-	fb := NewNode("a", "facebook", "href", mhc.context.GetFBPageUrl(), "class", "headerbar__navelement")
-	twitter := NewNode("a", "twitter", "href", mhc.context.GetTwitterPage(), "class", "headerbar__navelement")
+	logo := NewNode("a", "<!-- logo -->",
+		"href", mhc.context.GetHomeUrl(),
+		"class", "headerbar__logo")
+	logocontainer := NewNode("div", "",
+		"class", "headerbar__logocontainer")
+	logocontainer.AddChild(logo)
 
+	fb := NewNode("a", "facebook",
+		"href", mhc.context.GetFBPageUrl(),
+		"class", "headerbar__navelement")
+	twitter := NewNode("a", "twitter",
+		"href", mhc.context.GetTwitterPage(),
+		"class", "headerbar__navelement")
+	rss := NewNode("a", "rss",
+		"href", mhc.context.GetRssUrl(),
+		"class", "headerbar__navelement")
 	nav := NewNode("nav", "", "class", "headerbar__nav")
 	nav.AddChild(fb)
 	nav.AddChild(twitter)
-
-	inner := NewNode("div", "", "class", "headerbar__inner")
-	inner.AddChild(nav)
+	nav.AddChild(rss)
 
 	header := NewNode("header", "", "class", "headerbar")
-	header.AddChild(inner)
+	header.AddChild(logocontainer)
+	header.AddChild(nav)
 
-	p.addBodyNodes([]*Node{header})
+	wn := mhc.wrap(header, "headerbar__wrapper")
+	p.addBodyNodes([]*Node{wn})
+}
+
+func (mhc *MainHeaderComponent) GetCss() string {
+	return `
+.headerbar__wrapper {
+	position: fixed;
+	width: 100%;
+	top: 0;
+	background-color: white;
+}
+.headerbar__logo {
+	background-image: url(https://s3.amazonaws.com/drewingdeblog/drewing_de_logo.png);
+	background-repeat: no-repeat;
+	background-position: center center;
+	display: block;
+	width: 100%;
+	height: 80px;
+}
+.headerbar__navelement {
+	font-family: Arial Black, Arial, Helvetica, sans-serif;
+	font-weight: 900;
+	text-transform: uppercase;
+	text-decoration: none;
+	color: black;
+}
+.headerbar__navelement + .headerbar__navelement{
+	margin-left: 10px;
+}
+.headerbar__logocontainer {
+	border-bottom: 1px solid black;
+}
+.headerbar__nav {
+	padding-top: 10px;
+	padding-bottom: 10px;
+	border-bottom: 2px solid black;
+}
+`
 }
 
 /* content component */
-type ContentComponent struct{}
+type ContentComponent struct {
+	wrapper
+}
 
 func NewContentComponent() *ContentComponent {
 	return new(ContentComponent)
 }
 
-func (crc *ContentComponent) visitPage(p Element) {
+func (cc *ContentComponent) visitPage(p Element) {
 	n := NewNode("main", p.GetContent())
-	p.addBodyNodes([]*Node{n})
+	wn := cc.wrap(n)
+	p.addBodyNodes([]*Node{wn})
+}
+
+func (cc *ContentComponent) GetCss() string {
+	return `
+`
 }
 
 /* gallery component */
 
-type GalleryComponent struct{}
+type GalleryComponent struct {
+	wrapper
+}
 
 func NewGalleryComponent() *GalleryComponent {
 	gc := new(GalleryComponent)
@@ -360,11 +461,19 @@ func (gal *GalleryComponent) visitPage(p Element) {
 
 	m := NewNode("main", "", "class", "maincontent")
 	m.AddChild(inner)
-	p.addBodyNodes([]*Node{m})
+	wn := gal.wrap(m)
+	p.addBodyNodes([]*Node{wn})
+}
+
+func (gal *GalleryComponent) getCss() string {
+	return `
+`
 }
 
 /* copyright component */
-type CopyRightComponent struct{}
+type CopyRightComponent struct {
+	wrapper
+}
 
 func NewCopyRightComponent() *CopyRightComponent {
 	return new(CopyRightComponent)
@@ -378,7 +487,13 @@ Except where otherwise noted, content on this site is licensed under a <a rel="l
         Soweit nicht anders explizit ausgewiesen, stehen die Inhalte auf dieser Website unter der <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/3.0/">Creative Commons Namensnennung-NichtKommerziell-KeineBearbeitung (CC BY-NC-ND 3.0)</a> Lizenz. Unless otherwise noted the author of the content on this page is <a href="https://plus.google.com/113943655600557711368?rel=author">Ingmar Drewing</a>
     </p>
 	`)
-	p.addBodyNodes([]*Node{n})
+	wn := crc.wrap(n)
+	p.addBodyNodes([]*Node{wn})
+}
+
+func (crc *CopyRightComponent) GetCss() string {
+	return `
+`
 }
 
 /* cookie notifier component */
@@ -389,6 +504,11 @@ type CookieNotifierComponent struct {
 func (cnc *CookieNotifierComponent) visitPage(p Element) {
 	n := NewNode("script", cookiebar, "language", "javascript", "type", "text/javascript")
 	p.addBodyNodes([]*Node{n})
+}
+
+func (cnc *CookieNotifierComponent) getCss() string {
+	return `
+`
 }
 
 var cookiebar = `

@@ -73,8 +73,9 @@ type Page struct {
 
 func NewPage(
 	id, title, description, content,
-	imageUrl, thumbUrl, path, prodDomain, filename,
-	publishedTime, disqusId string) *Page {
+	imageUrl, thumbUrl, prodDomain,
+	path, filename, publishedTime,
+	disqusId string) *Page {
 	p := &Page{
 		id:            id,
 		Description:   description,

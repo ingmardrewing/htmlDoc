@@ -10,6 +10,9 @@ type Context interface {
 	GetFBPageUrl() string
 	GetTwitterPage() string
 	GetCssUrl() string
+	GetCss() string
+	GetRssUrl() string
+	GetHomeUrl() string
 	GetDisqusShortname() string
 	GetMainNavigationLocations() []Location
 	GetReadNavigationLocations() []Location
@@ -27,6 +30,8 @@ func NewBlogContext(twitterHandle string,
 	fbPageUrl string,
 	twitterPageUrl string,
 	cssUrl string,
+	rssUrl string,
+	homeUrl string,
 	disqusShortname string,
 	mainNavigationLocations []Location,
 	readNavigationLocations []Location,
@@ -41,6 +46,8 @@ func NewBlogContext(twitterHandle string,
 		fbPageUrl,
 		twitterPageUrl,
 		cssUrl,
+		rssUrl,
+		homeUrl,
 		disqusShortname,
 		mainNavigationLocations,
 		readNavigationLocations,
@@ -74,6 +81,8 @@ type BlogContext struct {
 	fbPageUrl                 string
 	twitterPageUrl            string
 	cssUrl                    string
+	rssUrl                    string
+	homeUrl                   string
 	disqusShortname           string
 	mainNavigationLocations   []Location
 	readNavigationLocations   []Location
@@ -82,8 +91,39 @@ type BlogContext struct {
 	components                []component
 }
 
+func (bc *BlogContext) GetCss() string {
+	css := `
+body {
+	margin: 0;
+	padding: 0;
+}
+a:hover {
+	color: grey;
+}
+.wrapperOuter {
+	text-align: center;
+}
+
+.wrapperInner {
+	margin: 0 auto;
+	width: 800px;
+}
+`
+	for _, c := range bc.components {
+		css += c.GetCss()
+	}
+	return css
+}
+
 func (bc *BlogContext) AddComponent(c component) {
 	bc.components = append(bc.components, c)
+}
+
+func (bc *BlogContext) GetHomeUrl() string {
+	return bc.homeUrl
+}
+func (bc *BlogContext) GetRssUrl() string {
+	return bc.rssUrl
 }
 
 func (bc *BlogContext) Render(p Element) string {
