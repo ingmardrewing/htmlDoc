@@ -93,12 +93,24 @@ func NewTwitterComponent(context Context) *TwitterComponent {
 
 func (tw *TwitterComponent) visitPage(p Element) {
 	m := []*Node{
-		NewNode("meta", "", "name", "t:card", "content", tw.context.GetTwitterCardType()),
-		NewNode("meta", "", "name", "t:site", "content", tw.context.GetTwitterHandle()),
-		NewNode("meta", "", "name", "t:title", "content", p.GetTitle()),
-		NewNode("meta", "", "name", "t:text:description", "content", p.GetDescription()),
-		NewNode("meta", "", "name", "t:creator", "content", tw.context.GetTwitterHandle()),
-		NewNode("meta", "", "name", "t:image", "content", p.GetImageUrl())}
+		NewNode("meta", "",
+			"name", "t:card",
+			"content", tw.context.GetTwitterCardType()),
+		NewNode("meta", "",
+			"name", "t:site",
+			"content", tw.context.GetTwitterHandle()),
+		NewNode("meta", "",
+			"name", "t:title",
+			"content", p.GetTitle()),
+		NewNode("meta", "",
+			"name", "t:text:description",
+			"content", p.GetDescription()),
+		NewNode("meta", "",
+			"name", "t:creator",
+			"content", tw.context.GetTwitterHandle()),
+		NewNode("meta", "",
+			"name", "t:image",
+			"content", p.GetImageUrl())}
 	p.addHeaderNodes(m)
 }
 
@@ -134,49 +146,130 @@ func (clc *CssLinkComponent) visitPage(p Element) {
 	p.addHeaderNodes([]*Node{link})
 }
 
-/* NaviComponent */
+/* MainNaviComponent */
 
-func NewMainNaviComponent(locations []Location) *NaviComponent {
-	return newNaviComponent(locations, "mainNav")
-}
-
-func NewFooterNaviComponent(locations []Location) *NaviComponent {
-	return newNaviComponent(locations, "footerNav")
-}
-
-func newNaviComponent(locs []Location, class string) *NaviComponent {
-	nc := new(NaviComponent)
-	nc.locations = locs
-	nc.cssClass = class
+func NewMainNaviComponent(locations []Location) *MainNaviComponent {
+	nc := new(MainNaviComponent)
+	nc.locations = locations
 	return nc
 }
 
-type NaviComponent struct {
+type MainNaviComponent struct {
 	wrapper
 	locations []Location
 	cssClass  string
 }
 
-func (nv *NaviComponent) visitPage(p Element) {
-	nav := NewNode("nav", "")
+func (nv *MainNaviComponent) visitPage(p Element) {
+	nav := NewNode("nav", "",
+		"class", "mainnavi")
 	url := p.GetPath()
 	for _, l := range nv.locations {
 		if url == l.GetPath() {
-			span := NewNode("span", l.GetTitle())
+			span := NewNode("span", l.GetTitle(),
+				"class", "mainnavi__navelement")
 			nav.AddChild(span)
 		} else {
-			a := NewNode("a", l.GetTitle(), "href", l.GetPath())
+			a := NewNode("a", l.GetTitle(),
+				"href", l.GetPath(),
+				"class", "mainnavi__navelement")
 			nav.AddChild(a)
 		}
 	}
 	node := NewNode("div", "", "class", nv.cssClass)
 	node.AddChild(nav)
-	wn := nv.wrap(node)
+	wn := nv.wrap(node, "mainnavi__wrapper")
 	p.addBodyNodes([]*Node{wn})
 }
 
-func (nv *NaviComponent) GetCss() string {
-	return ""
+func (mhc *MainNaviComponent) GetCss() string {
+	return `
+.mainnavi {
+	border-top: 1px solid black;
+	border-bottom: 2px solid black;
+}
+.mainnavi__wrapper {
+	position: fixed;
+	width: 100%;
+	top: 80px;
+	background-color: white;
+}
+.mainnavi__navelement {
+	display: inline-block;
+	font-family: Arial Black, Arial, Helvetica, sans-serif;
+	font-weight: 900;
+	font-size: 18px;
+	line-height: 20px;
+	text-transform: uppercase;
+	text-decoration: none;
+	color: black;
+	padding: 10px 20px;
+}
+.mainnavi__nav {
+	border-bottom: 2px solid black;
+}
+`
+}
+
+/* FooterNaviComponent */
+
+func NewFooterNaviComponent(locations []Location) *FooterNaviComponent {
+	nc := new(FooterNaviComponent)
+	nc.locations = locations
+	return nc
+}
+
+type FooterNaviComponent struct {
+	wrapper
+	locations []Location
+	cssClass  string
+}
+
+func (nv *FooterNaviComponent) visitPage(p Element) {
+	nav := NewNode("nav", "",
+		"class", "footernavi")
+	url := p.GetPath()
+	for _, l := range nv.locations {
+		if url == l.GetPath() {
+			span := NewNode("span", l.GetTitle(),
+				"class", "footernavi__navelement")
+			nav.AddChild(span)
+		} else {
+			a := NewNode("a", l.GetTitle(),
+				"href", l.GetPath(),
+				"class", "footernavi__navelement")
+			nav.AddChild(a)
+		}
+	}
+	node := NewNode("div", "", "class", nv.cssClass)
+	node.AddChild(nav)
+	wn := nv.wrap(node, "footernavi__wrapper")
+	p.addBodyNodes([]*Node{wn})
+}
+
+func (mhc *FooterNaviComponent) GetCss() string {
+	return `
+.footernavi {
+	border-top: 1px solid black;
+}
+.footernavi__wrapper {
+	position: fixed;
+	width: 100%;
+	bottom: 0;
+	background-color: white;
+}
+.footernavi__navelement {
+	display: inline-block;
+	font-family: Arial Black, Arial, Helvetica, sans-serif;
+	font-weight: 900;
+	font-size: 16px;
+	line-height: 20px;
+	text-transform: uppercase;
+	text-decoration: none;
+	color: black;
+	padding: 10px 20px;
+}
+`
 }
 
 /* ReadNaviComponent */
@@ -350,23 +443,8 @@ func (mhc *MainHeaderComponent) visitPage(p Element) {
 		"class", "headerbar__logocontainer")
 	logocontainer.AddChild(logo)
 
-	fb := NewNode("a", "facebook",
-		"href", mhc.context.GetFBPageUrl(),
-		"class", "headerbar__navelement")
-	twitter := NewNode("a", "twitter",
-		"href", mhc.context.GetTwitterPage(),
-		"class", "headerbar__navelement")
-	rss := NewNode("a", "rss",
-		"href", mhc.context.GetRssUrl(),
-		"class", "headerbar__navelement")
-	nav := NewNode("nav", "", "class", "headerbar__nav")
-	nav.AddChild(fb)
-	nav.AddChild(twitter)
-	nav.AddChild(rss)
-
 	header := NewNode("header", "", "class", "headerbar")
 	header.AddChild(logocontainer)
-	header.AddChild(nav)
 
 	wn := mhc.wrap(header, "headerbar__wrapper")
 	p.addBodyNodes([]*Node{wn})
@@ -389,22 +467,15 @@ func (mhc *MainHeaderComponent) GetCss() string {
 	height: 80px;
 }
 .headerbar__navelement {
+	display: inline-block;
 	font-family: Arial Black, Arial, Helvetica, sans-serif;
 	font-weight: 900;
+	font-size: 18px;
+	line-height: 20px;
 	text-transform: uppercase;
 	text-decoration: none;
 	color: black;
-}
-.headerbar__navelement + .headerbar__navelement{
-	margin-left: 10px;
-}
-.headerbar__logocontainer {
-	border-bottom: 1px solid black;
-}
-.headerbar__nav {
-	padding-top: 10px;
-	padding-bottom: 10px;
-	border-bottom: 2px solid black;
+	padding: 10px 20px;
 }
 `
 }
@@ -419,13 +490,39 @@ func NewContentComponent() *ContentComponent {
 }
 
 func (cc *ContentComponent) visitPage(p Element) {
-	n := NewNode("main", p.GetContent())
+	h1 := NewNode("h1", p.GetTitle(),
+		"class", "maincontent__h1")
+	h2 := NewNode("h2", p.GetPublishedTime(),
+		"class", "maincontent__h2")
+	n := NewNode("main", p.GetContent(),
+		"class", "maincontent")
+	n.AddChild(h1)
+	n.AddChild(h2)
 	wn := cc.wrap(n)
 	p.addBodyNodes([]*Node{wn})
 }
 
 func (cc *ContentComponent) GetCss() string {
 	return `
+.maincontent{
+	padding-top: 126px;
+	text-align: left;
+}
+.maincontent__h1,
+.maincontent__h2 {
+	display: inline-block;
+	font-family: Arial Black, Arial, Helvetica, sans-serif;
+	text-transform: uppercase;
+}
+.maincontent__h1 ,
+.maincontent__h2 {
+	font-size: 18px;
+	line-height: 20px;
+}
+.maincontent__h2 {
+	color: lightgrey;
+	margin-left: 10px;
+}
 `
 }
 

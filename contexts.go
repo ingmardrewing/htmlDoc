@@ -60,6 +60,7 @@ func NewBlogContext(twitterHandle string,
 	bc.AddComponent(NewCssLinkComponent(bc.GetCssUrl()))
 	bc.AddComponent(NewTitleComponent())
 	bc.AddComponent(NewMainHeaderComponent(bc))
+	bc.AddComponent(NewMainNaviComponent(mainNavigationLocations))
 	//bc.AddComponent(NewGalleryComponent())
 	bc.AddComponent(NewMainNaviComponent(bc.GetMainNavigationLocations()))
 	bc.AddComponent(NewContentComponent())
@@ -93,12 +94,12 @@ type BlogContext struct {
 
 func (bc *BlogContext) GetCss() string {
 	css := `
-body {
+body, p {
 	margin: 0;
 	padding: 0;
 }
 a:hover {
-	color: grey;
+	color: lightgrey;
 }
 .wrapperOuter {
 	text-align: center;
