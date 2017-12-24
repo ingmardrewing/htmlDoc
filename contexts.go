@@ -1,5 +1,10 @@
 package htmlDoc
 
+import (
+	"regexp"
+	"strings"
+)
+
 type Context interface {
 	GetTwitterHandle() string
 	GetContentSection() string
@@ -113,7 +118,13 @@ a:hover {
 	for _, c := range bc.components {
 		css += c.GetCss()
 	}
-	return css
+	return bc.stripCssWhitespace(css)
+}
+
+func (bc *BlogContext) stripCssWhitespace(txt string) string {
+	stripped1 := strings.Join(strings.Split(txt, "\n"), "")
+	r := regexp.MustCompile("\\s+")
+	return r.ReplaceAllString(stripped1, " ")
 }
 
 func (bc *BlogContext) AddComponent(c component) {
