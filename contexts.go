@@ -102,12 +102,17 @@ type BlogContext struct {
 
 func (bc *BlogContext) GetCss() string {
 	css := `
-body, p {
+body, p, span {
 	margin: 0;
 	padding: 0;
+	font-family: Arial, Helvetica, sans-serif;
+}
+a {
+	color: grey;
+	text-decoration: none;
 }
 a:hover {
-	color: lightgrey;
+	text-decoration: underline;
 }
 .wrapperOuter {
 	text-align: center;
