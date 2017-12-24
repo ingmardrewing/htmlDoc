@@ -1,8 +1,11 @@
 package htmlDoc
 
 import (
+	"fmt"
+
 	"github.com/tdewolff/minify"
 	"github.com/tdewolff/minify/css"
+	"github.com/tdewolff/minify/js"
 )
 
 type Context interface {
@@ -150,7 +153,35 @@ func (bc *BlogContext) Render(p Element) string {
 	for _, c := range bc.components {
 		p.acceptVisitor(c)
 	}
-	return p.Render()
+	html := p.Render() + bc.GetJs()
+
+	return html
+}
+
+func (bc *BlogContext) minifyHtml(html string) string {
+	// TODO: find error - produces defect html
+	m := minify.New()
+	m.AddFunc("text/html", js.Minify)
+	s, err := m.String("text/html", html)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func (bc *BlogContext) GetJs() string {
+	jsCode := ""
+	for _, c := range bc.components {
+		jsCode += c.GetJs()
+	}
+
+	m := minify.New()
+	m.AddFunc("text/javascript", js.Minify)
+	s, err := m.String("text/javascript", jsCode)
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf(`<script>%s</script>`, s)
 }
 
 func (bc *BlogContext) GetDisqusShortname() string {
