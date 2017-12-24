@@ -2,7 +2,9 @@ package htmlDoc
 
 import (
 	"fmt"
+	"log"
 
+	"github.com/ingmardrewing/fs"
 	"github.com/tdewolff/minify"
 	"github.com/tdewolff/minify/css"
 	"github.com/tdewolff/minify/js"
@@ -26,7 +28,7 @@ type Context interface {
 	GetReadNavigationLocations() []Location
 	GetFooterNavigationLocations() []Location
 	AddComponent(c component)
-	Render(p Element) string
+	Render(targetDir string)
 }
 
 func NewBlogContext(twitterHandle string,
@@ -138,6 +140,10 @@ func (bc *BlogContext) minifyCss(txt string) string {
 	return s
 }
 
+func (bc *BlogContext) AddPage(e Element) {
+	bc.pages = append(bc.pages, e)
+}
+
 func (bc *BlogContext) AddComponent(c component) {
 	bc.components = append(bc.components, c)
 }
@@ -149,13 +155,18 @@ func (bc *BlogContext) GetRssUrl() string {
 	return bc.rssUrl
 }
 
-func (bc *BlogContext) Render(p Element) string {
-	for _, c := range bc.components {
-		p.acceptVisitor(c)
+func (bc *BlogContext) Render(targetDir string) {
+	for _, p := range bc.pages {
+		path := targetDir + p.GetFsPath()
+		log.Println("Writing to " + path)
+		filename := p.GetFsFilename()
+		for _, c := range bc.components {
+			p.acceptVisitor(c)
+		}
+		html := p.Render() + bc.GetJs()
+		fs.WriteStringToFS(path, filename, html)
 	}
-	html := p.Render() + bc.GetJs()
-
-	return html
+	fs.WriteStringToFS(targetDir, bc.GetCssUrl(), bc.GetCss())
 }
 
 func (bc *BlogContext) minifyHtml(html string) string {

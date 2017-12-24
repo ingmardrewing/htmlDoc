@@ -12,6 +12,7 @@ type Element interface {
 	GetImageUrl() string
 	GetDisqusId() string
 	Render() string
+	GetFsFilename() string
 }
 
 type Location interface {
