@@ -1,8 +1,8 @@
 package htmlDoc
 
 import (
-	"regexp"
-	"strings"
+	"github.com/tdewolff/minify"
+	"github.com/tdewolff/minify/css"
 )
 
 type Context interface {
@@ -118,13 +118,21 @@ a:hover {
 	for _, c := range bc.components {
 		css += c.GetCss()
 	}
-	return bc.stripCssWhitespace(css)
+	return bc.minifyCss(css)
 }
 
-func (bc *BlogContext) stripCssWhitespace(txt string) string {
-	stripped1 := strings.Join(strings.Split(txt, "\n"), "")
-	r := regexp.MustCompile("\\s+")
-	return r.ReplaceAllString(stripped1, " ")
+func (bc *BlogContext) minifyCss(txt string) string {
+	m := minify.New()
+	m.AddFunc("text/css", css.Minify)
+	/*
+		m.AddFunc("text/html", html.Minify)
+		m.AddFunc("text/javascript", js.Minify)
+	*/
+	s, err := m.String("text/css", txt)
+	if err != nil {
+		panic(err)
+	}
+	return s
 }
 
 func (bc *BlogContext) AddComponent(c component) {
