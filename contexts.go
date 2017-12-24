@@ -29,6 +29,7 @@ type Context interface {
 	GetFooterNavigationLocations() []Location
 	AddComponent(c component)
 	Render(targetDir string)
+	AddPage(p Element)
 }
 
 func NewBlogContext(twitterHandle string,
@@ -140,8 +141,8 @@ func (bc *BlogContext) minifyCss(txt string) string {
 	return s
 }
 
-func (bc *BlogContext) AddPage(e Element) {
-	bc.pages = append(bc.pages, e)
+func (bc *BlogContext) AddPage(p Element) {
+	bc.pages = append(bc.pages, p)
 }
 
 func (bc *BlogContext) AddComponent(c component) {
