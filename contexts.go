@@ -65,13 +65,13 @@ func NewBlogContext(twitterHandle string,
 		footerNavigationLocations,
 		[]Element{},
 		[]component{}}
+
 	bc.AddComponent(NewGoogleComponent(bc))
 	bc.AddComponent(NewTwitterComponent(bc))
 	bc.AddComponent(NewFBComponent(bc))
 	bc.AddComponent(NewCssLinkComponent(bc.GetCssUrl()))
 	bc.AddComponent(NewTitleComponent())
 	bc.AddComponent(NewMainHeaderComponent(bc))
-	bc.AddComponent(NewMainNaviComponent(mainNavigationLocations))
 	//bc.AddComponent(NewGalleryComponent())
 	bc.AddComponent(NewMainNaviComponent(bc.GetMainNavigationLocations()))
 	bc.AddComponent(NewContentComponent())
@@ -156,7 +156,43 @@ func (bc *BlogContext) GetRssUrl() string {
 	return bc.rssUrl
 }
 
+func (bc *BlogContext) writeBlogNaviPages(targetDir string) {
+	//bn := NewBlogNavi(bc)
+}
+
+func NewBlogNavi(bc *BlogContext) *BlogNavi {
+	bn := new(BlogNavi)
+	bn.AddComponent(NewGoogleComponent(bc))
+	bn.AddComponent(NewTwitterComponent(bc))
+	bn.AddComponent(NewFBComponent(bc))
+	bn.AddComponent(NewCssLinkComponent(bc.GetCssUrl()))
+	bn.AddComponent(NewTitleComponent())
+	bn.AddComponent(NewMainHeaderComponent(bc))
+	bn.AddComponent(NewMainNaviComponent(bc.GetMainNavigationLocations()))
+	// bn.AddComponent(NewBlogNaviComponent(bn))
+	bn.AddComponent(NewCopyRightComponent())
+	bn.AddComponent(NewFooterNaviComponent(bc.GetFooterNavigationLocations()))
+	return bn
+}
+
+type BlogNavi struct {
+	locations  []Location
+	naviPages  []Element
+	components []component
+}
+
+func (bn *BlogNavi) AddComponent(c component) {
+	bn.components = append(bn.components, c)
+}
+
+func (bn *BlogNavi) AddLocation(p Location) {
+	bn.locations = append(bn.locations, p)
+}
+
+func (bn *BlogNavi) Render() {}
+
 func (bc *BlogContext) WriteTo(targetDir string) {
+	bc.writeBlogNaviPages(targetDir)
 	for _, p := range bc.pages {
 		path := targetDir + p.GetFsPath()
 		log.Println("Writing to " + path)
