@@ -77,7 +77,6 @@ func NewBlogContext(twitterHandle string,
 	bc.AddComponent(NewCopyRightComponent())
 	bc.AddComponent(NewFooterNaviComponent(bc.GetFooterNavigationLocations()))
 	return bc
-
 }
 
 type BlogContext struct {
@@ -132,10 +131,6 @@ a:hover {
 func (bc *BlogContext) minifyCss(txt string) string {
 	m := minify.New()
 	m.AddFunc("text/css", css.Minify)
-	/*
-		m.AddFunc("text/html", html.Minify)
-		m.AddFunc("text/javascript", js.Minify)
-	*/
 	s, err := m.String("text/css", txt)
 	if err != nil {
 		panic(err)
