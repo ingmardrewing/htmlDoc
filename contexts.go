@@ -28,7 +28,7 @@ type Context interface {
 	GetReadNavigationLocations() []Location
 	GetFooterNavigationLocations() []Location
 	AddComponent(c component)
-	Render(targetDir string)
+	WriteTo(targetDir string)
 	AddPage(p Element)
 }
 
@@ -156,7 +156,7 @@ func (bc *BlogContext) GetRssUrl() string {
 	return bc.rssUrl
 }
 
-func (bc *BlogContext) Render(targetDir string) {
+func (bc *BlogContext) WriteTo(targetDir string) {
 	for _, p := range bc.pages {
 		path := targetDir + p.GetFsPath()
 		log.Println("Writing to " + path)
