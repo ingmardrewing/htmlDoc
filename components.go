@@ -547,6 +547,29 @@ func (cc *ContentComponent) GetCss() string {
 `
 }
 
+/* blog navi component */
+
+func NewBlogNaviComponent(context *BlogNaviContext) *BlogNaviComponent {
+	bnc := new(BlogNaviComponent)
+	bnc.context = context
+	return bnc
+}
+
+type BlogNaviComponent struct {
+	wrapper
+	context *BlogNaviContext
+}
+
+func (bnv *BlogNaviComponent) visitPage(p Element) {
+	n := NewNode("div", "XXX")
+	wn := bnv.wrap(n)
+	p.addBodyNodes([]*Node{wn})
+}
+
+func (bnv *BlogNaviComponent) getCss() string { return `` }
+
+func (bnv *BlogNaviComponent) getJs() string { return `` }
+
 /* gallery component */
 
 type GalleryComponent struct {
@@ -583,10 +606,7 @@ func (gal *GalleryComponent) visitPage(p Element) {
 	p.addBodyNodes([]*Node{wn})
 }
 
-func (gal *GalleryComponent) getCss() string {
-	return `
-`
-}
+func (gal *GalleryComponent) getCss() string { return `` }
 
 /* copyright component */
 type CopyRightComponent struct {
