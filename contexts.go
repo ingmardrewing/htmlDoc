@@ -2,6 +2,7 @@ package htmlDoc
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/ingmardrewing/fs"
 	"github.com/tdewolff/minify"
@@ -26,12 +27,16 @@ type Context interface {
 	GetMainNavigationLocations() []Location
 	GetReadNavigationLocations() []Location
 	GetFooterNavigationLocations() []Location
+	GetElements() []Element
 	AddComponent(c component)
 	WriteTo(targetDir string)
 	AddPage(p Element)
+	AddComponents()
+	AddLocations(l []Location)
+	SetGlobalFields(twitterHandle, topic, tags, site, cardType, section, fbPage, twitterPage, cssUrl, rssUrl, home, disqusShortname string, mainNavi, footerNavi []Location)
 }
 
-/* Abstract Context */
+/* Global Context */
 
 type GlobalContext struct {
 	twitterHandle             string
@@ -52,6 +57,45 @@ type GlobalContext struct {
 	components                []component
 }
 
+func (gc *GlobalContext) SetGlobalFields(
+	twitterHandle,
+	topic,
+	tags,
+	site,
+	cardType,
+	section,
+	fbPage,
+	twitterPage,
+	cssUrl,
+	rssUrl,
+	home,
+	disqusShortname string,
+	mainNavi,
+	footerNavi []Location) {
+	gc.twitterHandle = twitterHandle
+	gc.contentSection = topic
+	gc.tags = tags
+	gc.siteName = site
+	gc.twitterCardType = cardType
+	gc.ogType = section
+	gc.fbPageUrl = fbPage
+	gc.twitterPageUrl = twitterPage
+	gc.cssUrl = cssUrl
+	gc.rssUrl = rssUrl
+	gc.homeUrl = home
+	gc.disqusShortname = disqusShortname
+	gc.mainNavigationLocations = mainNavi
+	gc.footerNavigationLocations = footerNavi
+}
+
+func (gc *GlobalContext) AddLocations(l []Location) {
+	//
+}
+
+func (gc *GlobalContext) GetElements() []Element {
+	return gc.pages
+}
+
 func (gc *GlobalContext) AddPage(p Element) {
 	gc.pages = append(gc.pages, p)
 }
@@ -63,6 +107,7 @@ func (gc *GlobalContext) AddComponent(c component) {
 func (gc *GlobalContext) GetHomeUrl() string {
 	return gc.homeUrl
 }
+
 func (gc *GlobalContext) GetRssUrl() string {
 	return gc.rssUrl
 }
@@ -164,25 +209,8 @@ func (gc *GlobalContext) GetReadNavigationLocations() []Location {
 
 /* Blog Context */
 
-func NewBlogContext(twitterHandle, topic, tags, site, cardType, section, fbPage, twitterPage, cssUrl, rssUrl, home, disqusShortname string, mainNavi, footerNavi []Location) *BlogContext {
+func NewBlogContext() *BlogContext {
 	bc := new(BlogContext)
-
-	bc.GlobalContext.twitterHandle = twitterHandle
-	bc.GlobalContext.contentSection = topic
-	bc.GlobalContext.tags = tags
-	bc.GlobalContext.siteName = site
-	bc.GlobalContext.twitterCardType = cardType
-	bc.GlobalContext.ogType = section
-	bc.GlobalContext.fbPageUrl = fbPage
-	bc.GlobalContext.twitterPageUrl = twitterPage
-	bc.GlobalContext.cssUrl = cssUrl
-	bc.GlobalContext.rssUrl = rssUrl
-	bc.GlobalContext.homeUrl = home
-	bc.GlobalContext.disqusShortname = disqusShortname
-	bc.GlobalContext.mainNavigationLocations = mainNavi
-	bc.GlobalContext.footerNavigationLocations = footerNavi
-
-	bc.addComponents()
 	return bc
 }
 
@@ -191,7 +219,7 @@ type BlogContext struct {
 	readNavigationLocations []Location
 }
 
-func (bc *BlogContext) addComponents() {
+func (bc *BlogContext) AddComponents() {
 	bc.AddComponent(NewGoogleComponent(bc))
 	bc.AddComponent(NewTwitterComponent(bc))
 	bc.AddComponent(NewFBComponent(bc))
@@ -254,18 +282,6 @@ func (bc *BlogContext) GetJs() string {
 
 func NewBlogNaviContext() *BlogNaviContext {
 	bn := new(BlogNaviContext)
-	bn.AddComponent(NewGoogleComponent(bn))
-	bn.AddComponent(NewTwitterComponent(bn))
-	bn.AddComponent(NewFBComponent(bn))
-	bn.AddComponent(NewCssLinkComponent(bn.GetCssUrl()))
-	bn.AddComponent(NewTitleComponent())
-	bn.AddComponent(NewMainHeaderComponent(bn))
-	bn.AddComponent(NewMainNaviComponent(bn.GetMainNavigationLocations()))
-
-	//bn.AddComponent(NewBlogNaviContextComponent(bn))
-
-	bn.AddComponent(NewCopyRightComponent())
-	bn.AddComponent(NewFooterNaviComponent(bn.GetFooterNavigationLocations()))
 	return bn
 }
 
@@ -273,6 +289,20 @@ type BlogNaviContext struct {
 	GlobalContext
 	context   *BlogContext
 	locations []Location
+}
+
+func (bn *BlogNaviContext) AddComponents() {
+	bn.AddComponent(NewGoogleComponent(bn))
+	bn.AddComponent(NewTwitterComponent(bn))
+	bn.AddComponent(NewFBComponent(bn))
+	bn.AddComponent(NewCssLinkComponent(bn.GetCssUrl()))
+	bn.AddComponent(NewTitleComponent())
+	bn.AddComponent(NewMainHeaderComponent(bn))
+	bn.AddComponent(NewMainNaviComponent(bn.GetMainNavigationLocations()))
+	bn.AddComponent(NewBlogNaviContextComponent())
+
+	bn.AddComponent(NewCopyRightComponent())
+	bn.AddComponent(NewFooterNaviComponent(bn.GetFooterNavigationLocations()))
 }
 
 func (bn *BlogNaviContext) WriteTo(targetDir string) {
@@ -285,27 +315,72 @@ func (bn *BlogNaviContext) WriteTo(targetDir string) {
 		filename := p.GetFsFilename()
 		html := p.Render() + bn.GetJs()
 		fs.WriteStringToFS(path, filename, html)
-
 	}
-	fs.WriteStringToFS(targetDir, bn.GetCssUrl(), bn.GetCss())
 }
 
 func (bn *BlogNaviContext) AddComponent(c component) {
-	bn.GlobalContext.components = append(bn.components, c)
+	bn.components = append(bn.components, c)
 }
 
-func (bn *BlogNaviContext) AddLocation(p Location) bool {
-	bn.locations = append(bn.locations, p)
-	return len(bn.locations) == 10
-}
+func (bn *BlogNaviContext) AddLocations(l []Location) {
+	nf := NewNaviPageFactory(l)
+	bundles := nf.generateBundles()
 
-func (bn *BlogNaviContext) Render(id string) string {
-	p := NewPage(id, "Blog", "Blog",
-		"", "", "", "",
-		"/blog", "/index"+id+".html",
-		"", "")
-	for _, c := range bn.components {
-		p.acceptVisitor(c)
+	for i, b := range bundles {
+		ix := strconv.Itoa(i)
+		bn.AddPage(NewPage(ix, "blog navi", "descr ...",
+			b.GetContent(), "", "", "https://drewing.de",
+			"/", "index"+ix+".html", "", ""))
 	}
-	return p.Render()
+}
+
+func NewNaviPageFactory(l []Location) *NaviPageFactory {
+	np := new(NaviPageFactory)
+	np.locations = l
+	return np
+}
+
+type NaviPageFactory struct {
+	locations []Location
+}
+
+func (n NaviPageFactory) generateBundles() []*LocationBundle {
+	b := NewLocationBundle()
+	bundles := []*LocationBundle{}
+	for _, l := range n.locations {
+		b.AddLocation(l)
+		if b.full() {
+			bundles = append(bundles, b)
+			b = NewLocationBundle()
+		}
+	}
+	return bundles
+}
+
+func NewLocationBundle() *LocationBundle {
+	return new(LocationBundle)
+}
+
+type LocationBundle struct {
+	locations []Location
+}
+
+func (l *LocationBundle) AddLocation(p Location) {
+	l.locations = append(l.locations, p)
+}
+
+func (l *LocationBundle) full() bool {
+	return len(l.locations) >= 10
+}
+
+func (l *LocationBundle) GetContent() string {
+	html := ""
+	for _, l := range l.locations {
+		html += fmt.Sprintf("<p>%s</p>", l.GetDomain())
+		html += fmt.Sprintf("<p>%s</p>", l.GetPath())
+		html += fmt.Sprintf("<p>%s</p>", l.GetTitle())
+		html += fmt.Sprintf("<p>%s</p>", l.GetThumbnailUrl())
+		html += fmt.Sprintf("<p>%s</p>", l.GetFsPath())
+	}
+	return html
 }

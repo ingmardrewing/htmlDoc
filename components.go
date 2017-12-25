@@ -151,8 +151,24 @@ func (clc *CssLinkComponent) visitPage(p Element) {
 	p.addHeaderNodes([]*Node{link})
 }
 
-/* MainNaviComponent */
+/**/
 
+type BlogNaviComponent struct {
+	wrapper
+	abstractComponent
+}
+
+func NewBlogNaviContextComponent() *BlogNaviComponent {
+	return new(BlogNaviComponent)
+}
+
+func (b *BlogNaviComponent) visitPage(p Element) {
+	n := NewNode("p", p.GetContent())
+	wn := b.wrap(n)
+	p.addHeaderNodes([]*Node{wn})
+}
+
+/* MainNaviComponent */
 func NewMainNaviComponent(locations []Location) *MainNaviComponent {
 	nc := new(MainNaviComponent)
 	nc.locations = locations
@@ -546,29 +562,6 @@ func (cc *ContentComponent) GetCss() string {
 }
 `
 }
-
-/* blog navi component */
-
-func NewBlogNaviComponent(context *BlogNaviContext) *BlogNaviComponent {
-	bnc := new(BlogNaviComponent)
-	bnc.context = context
-	return bnc
-}
-
-type BlogNaviComponent struct {
-	wrapper
-	context *BlogNaviContext
-}
-
-func (bnv *BlogNaviComponent) visitPage(p Element) {
-	n := NewNode("div", "XXX")
-	wn := bnv.wrap(n)
-	p.addBodyNodes([]*Node{wn})
-}
-
-func (bnv *BlogNaviComponent) getCss() string { return `` }
-
-func (bnv *BlogNaviComponent) getJs() string { return `` }
 
 /* gallery component */
 
