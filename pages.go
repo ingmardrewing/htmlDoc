@@ -192,12 +192,17 @@ func (p *PageManager) GeneratePostNaviPages(atPath string) {
 func (p *PageManager) generateNaviPageContent(bundle *ElementBundle) string {
 	n := NewNode("div", "", "class", "blognavientry")
 	for _, e := range bundle.GetElements() {
-		n.AddChild(NewNode("a", "Link", "href", "/drewing2018"+e.GetPath()))
-		n.AddChild(NewNode("p", e.GetDomain()))
-		n.AddChild(NewNode("p", e.GetTitle()))
-		n.AddChild(NewNode("p", e.GetThumbnailUrl()))
-		n.AddChild(NewNode("p", e.GetDescription()))
-		n.AddChild(NewNode("p", "------"))
+		h2 := NewNode("h2", e.GetTitle())
+		h3 := NewNode("h2", e.GetDescription())
+		div := NewNode("div", "", "style", "background-image: url("+e.GetThumbnailUrl()+")")
+		div.AddChild(h2)
+		div.AddChild(h3)
+
+		a := NewNode("a", "", "href", e.GetDomain()+e.GetPath())
+		a.AddChild(div)
+
+		n.AddChild(a)
+
 	}
 	return n.Render()
 }
