@@ -1,8 +1,18 @@
 package htmlDoc
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
-/* location */
+type Location interface {
+	GetPath() string
+	GetDomain() string
+	GetTitle() string
+	GetThumbnailUrl() string
+	GetFsPath() string
+}
+
 type Element interface {
 	Location
 	acceptVisitor(v component)
@@ -15,14 +25,6 @@ type Element interface {
 	GetDisqusId() string
 	Render() string
 	GetFsFilename() string
-}
-
-type Location interface {
-	GetPath() string
-	GetDomain() string
-	GetTitle() string
-	GetThumbnailUrl() string
-	GetFsPath() string
 }
 
 func NewLocation(url, prodDomain, title, thumbnailUrl, fsPath, fsFilename string) *Loc {
@@ -61,47 +63,6 @@ func (l *Loc) GetThumbnailUrl() string {
 	return l.thumbnailUrl
 }
 
-/* BlogPage */
-
-func NewBlogNaviPage(
-	id, title, description, content,
-	imageUrl, thumbUrl, prodDomain,
-	path, filename, publishedTime,
-	disqusId string,
-	bundle *LocationBundle) *BlogNavPage {
-	p := &BlogNavPage{
-		Page: Page{
-			Loc: Loc{
-				title:        title,
-				url:          path + filename,
-				prodDomain:   prodDomain,
-				thumbnailUrl: thumbUrl,
-				fsPath:       path,
-				fsFilename:   filename},
-			id:            id,
-			Description:   description,
-			Content:       content,
-			ImageUrl:      imageUrl,
-			PublishedTime: publishedTime,
-			DisqusId:      disqusId,
-			doc:           NewHtmlDoc()},
-		bundle: bundle}
-	return p
-}
-
-type BlogNavPage struct {
-	Page
-	bundle *LocationBundle
-}
-
-func (b *BlogNavPage) SetBundle(bundle *LocationBundle) {
-	b.bundle = bundle
-}
-
-func (b *BlogNavPage) GetBundle() *LocationBundle {
-	return b.bundle
-}
-
 /* Page */
 
 type Page struct {
@@ -121,6 +82,13 @@ func NewPage(
 	path, filename, publishedTime,
 	disqusId string) *Page {
 	p := &Page{
+		Loc: Loc{
+			title:        title,
+			url:          path + filename,
+			prodDomain:   prodDomain,
+			thumbnailUrl: thumbUrl,
+			fsPath:       path,
+			fsFilename:   filename},
 		id:            id,
 		Description:   description,
 		Content:       content,
@@ -128,12 +96,7 @@ func NewPage(
 		PublishedTime: publishedTime,
 		DisqusId:      disqusId,
 		doc:           NewHtmlDoc()}
-	p.Loc.title = title
-	p.Loc.url = path + filename
-	p.Loc.prodDomain = prodDomain
-	p.Loc.thumbnailUrl = thumbUrl
-	p.Loc.fsPath = path
-	p.Loc.fsFilename = filename
+	fmt.Println("xx -- " + path)
 	return p
 }
 
@@ -207,32 +170,27 @@ func (p *PageManager) AddPost(
 	p.posts = append(p.posts, post)
 }
 
-func (p *PageManager) GeneratePostNaviPages() {
-	// TODO: ugly ...
-	loc := []Location{}
-	for _, post := range p.posts {
-		loc = append(loc, post)
-	}
-	n := NewNaviPageFactory(loc)
-	bundles := n.generateBundles()
-
+func (p *PageManager) GeneratePostNaviPages(atPath string) {
+	bundles := GenerateElementBundles(p.posts)
 	for i, b := range bundles {
 		ix := strconv.Itoa(i)
 		naviPageContent := p.generateNaviPageContent(b)
 		pnp := NewPage(ix, "blog navi", "descr ...",
 			naviPageContent, "", "", "https://drewing.de",
-			"/", "index"+ix+".html", "", "")
+			atPath, "index"+ix+".html", "", "")
 		p.AddPostNaviPage(pnp)
 	}
 }
 
-func (p *PageManager) generateNaviPageContent(bundle *LocationBundle) string {
+func (p *PageManager) generateNaviPageContent(bundle *ElementBundle) string {
 	n := NewNode("div", "", "class", "blognavientry")
-	for _, l := range bundle.GetLocations() {
-		n.AddChild(NewNode("p", l.GetPath()))
-		n.AddChild(NewNode("p", l.GetDomain()))
-		n.AddChild(NewNode("p", l.GetTitle()))
-		n.AddChild(NewNode("p", l.GetThumbnailUrl()))
+	for _, e := range bundle.GetElements() {
+		n.AddChild(NewNode("p", e.GetPath()))
+		n.AddChild(NewNode("p", e.GetDomain()))
+		n.AddChild(NewNode("p", e.GetTitle()))
+		n.AddChild(NewNode("p", e.GetThumbnailUrl()))
+		n.AddChild(NewNode("p", e.GetDescription()))
+		n.AddChild(NewNode("p", "------"))
 	}
 	return n.Render()
 }
@@ -261,45 +219,35 @@ func (p *PageManager) convertToElements(pages []*Page) []Element {
 	return elements
 }
 
-func NewNaviPageFactory(l []Location) *NaviPageFactory {
-	np := new(NaviPageFactory)
-	np.locations = l
-	return np
-}
-
-type NaviPageFactory struct {
-	locations []Location
-}
-
-func (n NaviPageFactory) generateBundles() []*LocationBundle {
-	b := NewLocationBundle()
-	bundles := []*LocationBundle{}
-	for _, l := range n.locations {
-		b.AddLocation(l)
+func GenerateElementBundles(pages []*Page) []*ElementBundle {
+	b := NewElementBundle()
+	bundles := []*ElementBundle{}
+	for _, p := range pages {
+		b.AddElement(p)
 		if b.full() {
 			bundles = append(bundles, b)
-			b = NewLocationBundle()
+			b = NewElementBundle()
 		}
 	}
 	return bundles
 }
 
-func NewLocationBundle() *LocationBundle {
-	return new(LocationBundle)
+func NewElementBundle() *ElementBundle {
+	return new(ElementBundle)
 }
 
-type LocationBundle struct {
-	locations []Location
+type ElementBundle struct {
+	elements []Element
 }
 
-func (l *LocationBundle) AddLocation(p Location) {
-	l.locations = append(l.locations, p)
+func (l *ElementBundle) AddElement(e Element) {
+	l.elements = append(l.elements, e)
 }
 
-func (l *LocationBundle) full() bool {
-	return len(l.locations) >= 10
+func (l *ElementBundle) full() bool {
+	return len(l.elements) >= 10
 }
 
-func (l *LocationBundle) GetLocations() []Location {
-	return l.locations
+func (l *ElementBundle) GetElements() []Element {
+	return l.elements
 }

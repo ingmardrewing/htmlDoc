@@ -193,25 +193,106 @@ func (clc *CssLinkComponent) visitPage(p Element) {
 type BlogNaviComponent struct {
 	wrapper
 	abstractComponent
-	blogNaviContext *BlogNaviContext
+	context Context
 }
 
-func NewBlogNaviContextComponent(bn *BlogNaviContext) *BlogNaviComponent {
+func NewBlogNaviContextComponent(c Context) *BlogNaviComponent {
 	bnc := new(BlogNaviComponent)
-	bnc.blogNaviContext = bn
+	bnc.context = c
 	return bnc
 }
 
+/*
 func (b *BlogNaviComponent) visitPage(p Element) {
-	n := NewNode("div", p.GetContent())
+	n := NewNode("div", p.GetContent(), "class", "blognavicomponent")
 	wn := b.wrap(n)
 	p.addHeaderNodes([]*Node{wn})
+}
+
+func (b *BlogNaviComponent) addHeaderNodes(p Element) {
+	inx := b.getIndexOfPage(p)
+	n := []*Node{}
+	firstUrl := b.locations[0].GetPath()
+	n = append(n, NewNode("link", "", "rel", "first", "href", firstUrl))
+	if inx > 0 {
+		prevUrl := b.locations[inx-1].GetPath()
+		n = append(n, NewNode("link", "", "rel", "prev", "href", prevUrl))
+	}
+	if inx < len(b.locations)-1 {
+		nextUrl := b.locations[inx+1].GetPath()
+		n = append(n, NewNode("link", "", "rel", "next", "href", nextUrl))
+	}
+	lastUrl := b.locations[len(b.locations)-1].GetPath()
+	n = append(n, NewNode("link", "", "rel", "last", "href", lastUrl))
+	p.addHeaderNodes(n)
+}
+*/
+
+func (b *BlogNaviComponent) addPrevious(p Element, n *Node) {
+	inx := b.getIndexOfPage(p)
+	if inx == 0 {
+		span := NewNode("span", "< previous posts")
+		n.AddChild(span)
+	} else {
+		elems := b.context.GetElements()
+		pv := elems[inx-1]
+		a := NewNode("a", "< previous posts", "href", pv.GetPath(), "rel", "prev")
+		n.AddChild(a)
+	}
+}
+
+func (b *BlogNaviComponent) addNext(p Element, n *Node) {
+	inx := b.getIndexOfPage(p)
+	if inx == len(b.context.GetElements())-1 {
+		span := NewNode("span", "next >")
+		n.AddChild(span)
+	} else {
+		elems := b.context.GetElements()
+		nx := elems[inx+1]
+		a := NewNode("a", "next >", "href", nx.GetPath(), "rel", "next")
+		n.AddChild(a)
+	}
+}
+
+func (b *BlogNaviComponent) addBodyNodes(p Element) {
+	nav := NewNode("nav", "")
+	b.addPrevious(p, nav)
+	b.addNext(p, nav)
+
+	d := NewNode("div", "", "class", "blognavicomponent")
+	d.AddChild(nav)
+	d.AddChild(NewNode("div", p.GetContent()))
+	d.AddChild(nav)
+
+	wn := b.wrap(d)
+
+	p.addBodyNodes([]*Node{wn})
+}
+
+func (b *BlogNaviComponent) visitPage(p Element) {
+	if len(b.context.GetElements()) < 3 {
+		return
+	}
+	//b.addHeaderNodes(p)
+	b.addBodyNodes(p)
+
+}
+
+func (b *BlogNaviComponent) getIndexOfPage(p Element) int {
+	for i, l := range b.context.GetElements() {
+		if l.GetPath() == p.GetPath() {
+			return i
+		}
+	}
+	return -1
 }
 
 func (b *BlogNaviComponent) GetCss() string {
 	return `
 .blognavicomponent {
 	text-align: left;
+	padding-top: 200px;
+	padding-bottom: 200px;
 }
 `
 }
