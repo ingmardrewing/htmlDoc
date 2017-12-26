@@ -1,6 +1,9 @@
 package htmlDoc
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 type Location interface {
 	GetPath() string
@@ -163,6 +166,8 @@ func (p *PageManager) AddPost(
 	content, imageUrl, thumbUrl,
 	prodDomain, path, filename,
 	createDate, disqusId string) {
+	fmt.Println(thumbUrl)
+	fmt.Println(imageUrl)
 	post := NewPage(id, title, description, content, imageUrl, thumbUrl, prodDomain, path, filename, createDate, disqusId)
 	p.posts = append(p.posts, post)
 }

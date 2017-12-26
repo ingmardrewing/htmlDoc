@@ -168,6 +168,8 @@ func NewTitleComponent() *TitleComponent {
 func (tc *TitleComponent) visitPage(p Element) {
 	title := NewNode("title", p.GetTitle())
 	p.addHeaderNodes([]*Node{title})
+	meta := NewNode("meta", "", "charset", "UTF-8")
+	p.addHeaderNodes([]*Node{meta})
 }
 
 /* css link component */
