@@ -1,9 +1,6 @@
 package htmlDoc
 
-import (
-	"fmt"
-	"strconv"
-)
+import "strconv"
 
 type Location interface {
 	GetPath() string
@@ -43,6 +40,7 @@ type Loc struct {
 func (l *Loc) GetDomain() string {
 	return l.prodDomain
 }
+
 func (l *Loc) GetFsPath() string {
 	return l.fsPath
 }
@@ -96,7 +94,6 @@ func NewPage(
 		PublishedTime: publishedTime,
 		DisqusId:      disqusId,
 		doc:           NewHtmlDoc()}
-	fmt.Println("xx -- " + path)
 	return p
 }
 
@@ -172,12 +169,17 @@ func (p *PageManager) AddPost(
 
 func (p *PageManager) GeneratePostNaviPages(atPath string) {
 	bundles := GenerateElementBundles(p.posts)
+	last := len(bundles) - 1
 	for i, b := range bundles {
 		ix := strconv.Itoa(i)
 		naviPageContent := p.generateNaviPageContent(b)
+		filename := "index" + ix + ".html"
+		if i == last {
+			filename = "index.html"
+		}
 		pnp := NewPage(ix, "blog navi", "descr ...",
 			naviPageContent, "", "", "https://drewing.de",
-			atPath, "index"+ix+".html", "", "")
+			atPath, filename, "", "")
 		p.AddPostNaviPage(pnp)
 	}
 }
@@ -185,7 +187,7 @@ func (p *PageManager) GeneratePostNaviPages(atPath string) {
 func (p *PageManager) generateNaviPageContent(bundle *ElementBundle) string {
 	n := NewNode("div", "", "class", "blognavientry")
 	for _, e := range bundle.GetElements() {
-		n.AddChild(NewNode("p", e.GetPath()))
+		n.AddChild(NewNode("a", "Link", "href", "/drewing2018"+e.GetPath()))
 		n.AddChild(NewNode("p", e.GetDomain()))
 		n.AddChild(NewNode("p", e.GetTitle()))
 		n.AddChild(NewNode("p", e.GetThumbnailUrl()))
@@ -249,5 +251,10 @@ func (l *ElementBundle) full() bool {
 }
 
 func (l *ElementBundle) GetElements() []Element {
-	return l.elements
+	length := len(l.elements)
+	reversed := []Element{}
+	for i := length - 1; i > 0; i-- {
+		reversed = append(reversed, l.elements[i])
+	}
+	return reversed
 }

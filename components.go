@@ -202,41 +202,15 @@ func NewBlogNaviContextComponent(c Context) *BlogNaviComponent {
 	return bnc
 }
 
-/*
-func (b *BlogNaviComponent) visitPage(p Element) {
-	n := NewNode("div", p.GetContent(), "class", "blognavicomponent")
-	wn := b.wrap(n)
-	p.addHeaderNodes([]*Node{wn})
-}
-
-func (b *BlogNaviComponent) addHeaderNodes(p Element) {
-	inx := b.getIndexOfPage(p)
-	n := []*Node{}
-	firstUrl := b.locations[0].GetPath()
-	n = append(n, NewNode("link", "", "rel", "first", "href", firstUrl))
-	if inx > 0 {
-		prevUrl := b.locations[inx-1].GetPath()
-		n = append(n, NewNode("link", "", "rel", "prev", "href", prevUrl))
-	}
-	if inx < len(b.locations)-1 {
-		nextUrl := b.locations[inx+1].GetPath()
-		n = append(n, NewNode("link", "", "rel", "next", "href", nextUrl))
-	}
-	lastUrl := b.locations[len(b.locations)-1].GetPath()
-	n = append(n, NewNode("link", "", "rel", "last", "href", lastUrl))
-	p.addHeaderNodes(n)
-}
-*/
-
 func (b *BlogNaviComponent) addPrevious(p Element, n *Node) {
 	inx := b.getIndexOfPage(p)
 	if inx == 0 {
-		span := NewNode("span", "< previous posts")
+		span := NewNode("span", "< previous posts", "class", "blognavicomponent__previous")
 		n.AddChild(span)
 	} else {
 		elems := b.context.GetElements()
 		pv := elems[inx-1]
-		a := NewNode("a", "< previous posts", "href", pv.GetPath(), "rel", "prev")
+		a := NewNode("a", "< previous posts", "href", "/drewing2018"+pv.GetPath(), "rel", "prev", "class", "blognavicomponent__previous")
 		n.AddChild(a)
 	}
 }
@@ -244,18 +218,18 @@ func (b *BlogNaviComponent) addPrevious(p Element, n *Node) {
 func (b *BlogNaviComponent) addNext(p Element, n *Node) {
 	inx := b.getIndexOfPage(p)
 	if inx == len(b.context.GetElements())-1 {
-		span := NewNode("span", "next >")
+		span := NewNode("span", "next posts >", "class", "blognavicomponent__next")
 		n.AddChild(span)
 	} else {
 		elems := b.context.GetElements()
 		nx := elems[inx+1]
-		a := NewNode("a", "next >", "href", nx.GetPath(), "rel", "next")
+		a := NewNode("a", "next posts >", "href", "/drewing2018"+nx.GetPath(), "rel", "next", "class", "blognavicomponent__next")
 		n.AddChild(a)
 	}
 }
 
 func (b *BlogNaviComponent) addBodyNodes(p Element) {
-	nav := NewNode("nav", "")
+	nav := NewNode("nav", "", "class", "blognavicomponent__nav")
 	b.addPrevious(p, nav)
 	b.addNext(p, nav)
 
@@ -291,8 +265,28 @@ func (b *BlogNaviComponent) GetCss() string {
 	return `
 .blognavicomponent {
 	text-align: left;
-	padding-top: 200px;
-	padding-bottom: 200px;
+	padding-top: 145px;
+	padding-bottom: 20px;
+}
+.blognavicomponent__nav {
+	text-align: center;
+	color: lightgrey;
+}
+.blognavicomponent__nav span {
+	font-family: Arial Black, Arial, Helvetica, sans-serif;
+	color: lightgrey;
+	font-weight: 900;
+}
+.blognavicomponent__next {
+	margin-left: 10px;
+}
+.blognavicomponent__previous,
+.blognavicomponent__next {
+	font-family: Arial Black, Arial, Helvetica, sans-serif;
+	color: grey;
+	text-transform: uppercase;
+	font-weight: 900;
+	font-size: 16px;
 }
 `
 }
