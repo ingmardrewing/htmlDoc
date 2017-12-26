@@ -34,6 +34,43 @@ func (cw *wrapper) wrap(n *Node, addedclasses ...string) *Node {
 	return wrapperNode
 }
 
+/* global css component */
+
+func NewGlobalCssComponent() *GlobalCssComponent {
+	return new(GlobalCssComponent)
+}
+
+type GlobalCssComponent struct {
+	abstractComponent
+}
+
+func (gcc *GlobalCssComponent) visitPage(p Element) {}
+
+func (gcc *GlobalCssComponent) GetCss() string {
+	return `
+body, p, span {
+	margin: 0;
+	padding: 0;
+	font-family: Arial, Helvetica, sans-serif;
+}
+a {
+	color: grey;
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}
+.wrapperOuter {
+	text-align: center;
+}
+
+.wrapperInner {
+	margin: 0 auto;
+	width: 800px;
+}
+`
+}
+
 /* fb component */
 type FBComponent struct {
 	abstractComponent
@@ -156,16 +193,27 @@ func (clc *CssLinkComponent) visitPage(p Element) {
 type BlogNaviComponent struct {
 	wrapper
 	abstractComponent
+	blogNaviContext *BlogNaviContext
 }
 
-func NewBlogNaviContextComponent() *BlogNaviComponent {
-	return new(BlogNaviComponent)
+func NewBlogNaviContextComponent(bn *BlogNaviContext) *BlogNaviComponent {
+	bnc := new(BlogNaviComponent)
+	bnc.blogNaviContext = bn
+	return bnc
 }
 
 func (b *BlogNaviComponent) visitPage(p Element) {
-	n := NewNode("p", p.GetContent())
+	n := NewNode("div", p.GetContent())
 	wn := b.wrap(n)
 	p.addHeaderNodes([]*Node{wn})
+}
+
+func (b *BlogNaviComponent) GetCss() string {
+	return `
+.blognavicomponent {
+	text-align: left;
+}
+`
 }
 
 /* MainNaviComponent */

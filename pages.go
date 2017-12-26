@@ -1,5 +1,7 @@
 package htmlDoc
 
+import "strconv"
+
 /* location */
 type Element interface {
 	Location
@@ -57,6 +59,47 @@ func (l *Loc) GetTitle() string {
 
 func (l *Loc) GetThumbnailUrl() string {
 	return l.thumbnailUrl
+}
+
+/* BlogPage */
+
+func NewBlogNaviPage(
+	id, title, description, content,
+	imageUrl, thumbUrl, prodDomain,
+	path, filename, publishedTime,
+	disqusId string,
+	bundle *LocationBundle) *BlogNavPage {
+	p := &BlogNavPage{
+		Page: Page{
+			Loc: Loc{
+				title:        title,
+				url:          path + filename,
+				prodDomain:   prodDomain,
+				thumbnailUrl: thumbUrl,
+				fsPath:       path,
+				fsFilename:   filename},
+			id:            id,
+			Description:   description,
+			Content:       content,
+			ImageUrl:      imageUrl,
+			PublishedTime: publishedTime,
+			DisqusId:      disqusId,
+			doc:           NewHtmlDoc()},
+		bundle: bundle}
+	return p
+}
+
+type BlogNavPage struct {
+	Page
+	bundle *LocationBundle
+}
+
+func (b *BlogNavPage) SetBundle(bundle *LocationBundle) {
+	b.bundle = bundle
+}
+
+func (b *BlogNavPage) GetBundle() *LocationBundle {
+	return b.bundle
 }
 
 /* Page */
@@ -132,4 +175,131 @@ func (p *Page) addBodyNodes(nodes []*Node) {
 	for _, n := range nodes {
 		p.doc.AddBodyNode(n)
 	}
+}
+
+/* PageManager */
+
+func NewPageManager() *PageManager {
+	return new(PageManager)
+}
+
+type PageManager struct {
+	posts         []*Page
+	pages         []*Page
+	postNaviPages []*Page
+}
+
+func (p *PageManager) AddPage(
+	id, title, description,
+	content, imageUrl, thumbUrl,
+	prodDomain, path, filename,
+	createDate, disqusId string) {
+	page := NewPage(id, title, description, content, imageUrl, thumbUrl, prodDomain, path, filename, createDate, disqusId)
+	p.pages = append(p.pages, page)
+}
+
+func (p *PageManager) AddPost(
+	id, title, description,
+	content, imageUrl, thumbUrl,
+	prodDomain, path, filename,
+	createDate, disqusId string) {
+	post := NewPage(id, title, description, content, imageUrl, thumbUrl, prodDomain, path, filename, createDate, disqusId)
+	p.posts = append(p.posts, post)
+}
+
+func (p *PageManager) GeneratePostNaviPages() {
+	// TODO: ugly ...
+	loc := []Location{}
+	for _, post := range p.posts {
+		loc = append(loc, post)
+	}
+	n := NewNaviPageFactory(loc)
+	bundles := n.generateBundles()
+
+	for i, b := range bundles {
+		ix := strconv.Itoa(i)
+		naviPageContent := p.generateNaviPageContent(b)
+		pnp := NewPage(ix, "blog navi", "descr ...",
+			naviPageContent, "", "", "https://drewing.de",
+			"/", "index"+ix+".html", "", "")
+		p.AddPostNaviPage(pnp)
+	}
+}
+
+func (p *PageManager) generateNaviPageContent(bundle *LocationBundle) string {
+	n := NewNode("div", "", "class", "blognavientry")
+	for _, l := range bundle.GetLocations() {
+		n.AddChild(NewNode("p", l.GetPath()))
+		n.AddChild(NewNode("p", l.GetDomain()))
+		n.AddChild(NewNode("p", l.GetTitle()))
+		n.AddChild(NewNode("p", l.GetThumbnailUrl()))
+	}
+	return n.Render()
+}
+
+func (p *PageManager) AddPostNaviPage(page *Page) {
+	p.postNaviPages = append(p.postNaviPages, page)
+}
+
+func (p *PageManager) GetPosts() []Element {
+	return p.convertToElements(p.posts)
+}
+
+func (p *PageManager) GetPostNaviPages() []Element {
+	return p.convertToElements(p.postNaviPages)
+}
+
+func (p *PageManager) GetPages() []Element {
+	return p.convertToElements(p.pages)
+}
+
+func (p *PageManager) convertToElements(pages []*Page) []Element {
+	elements := []Element{}
+	for _, page := range pages {
+		elements = append(elements, page)
+	}
+	return elements
+}
+
+func NewNaviPageFactory(l []Location) *NaviPageFactory {
+	np := new(NaviPageFactory)
+	np.locations = l
+	return np
+}
+
+type NaviPageFactory struct {
+	locations []Location
+}
+
+func (n NaviPageFactory) generateBundles() []*LocationBundle {
+	b := NewLocationBundle()
+	bundles := []*LocationBundle{}
+	for _, l := range n.locations {
+		b.AddLocation(l)
+		if b.full() {
+			bundles = append(bundles, b)
+			b = NewLocationBundle()
+		}
+	}
+	return bundles
+}
+
+func NewLocationBundle() *LocationBundle {
+	return new(LocationBundle)
+}
+
+type LocationBundle struct {
+	locations []Location
+}
+
+func (l *LocationBundle) AddLocation(p Location) {
+	l.locations = append(l.locations, p)
+}
+
+func (l *LocationBundle) full() bool {
+	return len(l.locations) >= 10
+}
+
+func (l *LocationBundle) GetLocations() []Location {
+	return l.locations
 }
