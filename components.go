@@ -290,6 +290,17 @@ func (b *BlogNaviComponent) GetCss() string {
 	font-weight: 900;
 	font-size: 16px;
 }
+.blognavientry__tile {
+	display: block;
+	width: 390px;
+	height: 390px;
+	background-size: cover;
+	margin-bottom: 20px;
+	float: left;
+}
+.blognavientry__tile:nth-child(odd) {
+	margin-right: 20px;
+}
 `
 }
 

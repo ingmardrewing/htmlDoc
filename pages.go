@@ -1,9 +1,6 @@
 package htmlDoc
 
-import (
-	"fmt"
-	"strconv"
-)
+import "strconv"
 
 type Location interface {
 	GetPath() string
@@ -113,7 +110,10 @@ func (p *Page) GetContent() string {
 }
 
 func (p *Page) GetDescription() string {
-	return p.Description
+	if p.Description != "" {
+		return p.Description
+	}
+	return " "
 }
 
 func (p *Page) GetImageUrl() string {
@@ -166,8 +166,6 @@ func (p *PageManager) AddPost(
 	content, imageUrl, thumbUrl,
 	prodDomain, path, filename,
 	createDate, disqusId string) {
-	fmt.Println(thumbUrl)
-	fmt.Println(imageUrl)
 	post := NewPage(id, title, description, content, imageUrl, thumbUrl, prodDomain, path, filename, createDate, disqusId)
 	p.posts = append(p.posts, post)
 }
@@ -190,20 +188,20 @@ func (p *PageManager) GeneratePostNaviPages(atPath string) {
 }
 
 func (p *PageManager) generateNaviPageContent(bundle *ElementBundle) string {
-	n := NewNode("div", "", "class", "blognavientry")
-	for _, e := range bundle.GetElements() {
+	n := NewNode("div", "", "class", "blognavipage")
+	elems := bundle.GetElements()
+	for _, e := range elems {
 		h2 := NewNode("h2", e.GetTitle())
-		h3 := NewNode("h2", e.GetDescription())
-		div := NewNode("div", "", "style", "background-image: url("+e.GetThumbnailUrl()+")")
-		div.AddChild(h2)
-		div.AddChild(h3)
-
-		a := NewNode("a", "", "href", e.GetDomain()+e.GetPath())
-		a.AddChild(div)
-
+		h3 := NewNode("h3", e.GetDescription())
+		a := NewNode("a", "",
+			"href", e.GetDomain()+e.GetPath(),
+			"style", "background-image: url("+e.GetThumbnailUrl()+")",
+			"class", "blognavientry__tile")
+		a.AddChild(h2)
+		a.AddChild(h3)
 		n.AddChild(a)
-
 	}
+	n.AddChild(NewNode("div", "", "style", "clear: both"))
 	return n.Render()
 }
 
@@ -263,7 +261,7 @@ func (l *ElementBundle) full() bool {
 func (l *ElementBundle) GetElements() []Element {
 	length := len(l.elements)
 	reversed := []Element{}
-	for i := length - 1; i > 0; i-- {
+	for i := length - 1; i >= 0; i-- {
 		reversed = append(reversed, l.elements[i])
 	}
 	return reversed
