@@ -1,6 +1,13 @@
 package htmlDoc
 
-import "strconv"
+import (
+	"fmt"
+	"log"
+	"strconv"
+	"strings"
+
+	"github.com/ingmardrewing/fs"
+)
 
 type Location interface {
 	GetPath() string
@@ -76,7 +83,7 @@ type Page struct {
 
 func NewPage(
 	id, title, description, content,
-	imageUrl, thumbUrl, prodDomain,
+	thumbUrl, imageUrl, prodDomain,
 	path, filename, publishedTime,
 	disqusId string) *Page {
 	p := &Page{
@@ -147,6 +154,10 @@ func NewPageManager() *PageManager {
 }
 
 type PageManager struct {
+	Json
+	booklistData  *Page
+	aboutData     *Page
+	imprintData   *Page
 	posts         []*Page
 	pages         []*Page
 	postNaviPages []*Page
@@ -191,7 +202,11 @@ func (p *PageManager) generateNaviPageContent(bundle *ElementBundle) string {
 	n := NewNode("div", "", "class", "blognavipage")
 	elems := bundle.GetElements()
 	for _, e := range elems {
-		a := NewNode("a", "",
+		ta := e.GetThumbnailUrl()
+		if ta == "" {
+			ta = e.GetImageUrl()
+		}
+		a := NewNode("a", "<!-- "+e.GetImageUrl()+" -->",
 			"href", e.GetDomain()+e.GetPath(),
 			"class", "blognavientry__tile")
 		span := NewNode("span", " ",
@@ -206,8 +221,66 @@ func (p *PageManager) generateNaviPageContent(bundle *ElementBundle) string {
 	return n.Render()
 }
 
+func (p *PageManager) GetFooterPages() []Element {
+	return []Element{p.imprintData, p.aboutData, p.booklistData}
+}
+
 func (p *PageManager) AddPostNaviPage(page *Page) {
 	p.postNaviPages = append(p.postNaviPages, page)
+}
+
+func (p *PageManager) AddPostFromJsonData(v []byte) {
+	id := p.Read(v, "post", "post_id")
+	title := p.Read(v, "post", "title")
+
+	thumbUrl := p.Read(v, "thumbImg")
+	imageUrl := p.Read(v, "postImg")
+
+	fmt.Println(thumbUrl)
+	fmt.Println(imageUrl)
+
+	description := p.Read(v, "post", "excerpt")
+	disqusId := p.Read(v, "post", "custom_fields", "dsq_thread_id", "[0]")
+	createDate := p.Read(v, "post", "date")
+	content := p.Read(v, "post", "content")
+	rawUrl := p.Read(v, "post", "url")
+	path := p.extractPathFromUrl(rawUrl)
+
+	filename := "index.html"
+	prodDomain := "https://drewing.de"
+
+	post := NewPage(id, title, description, content,
+		imageUrl, thumbUrl, prodDomain,
+		path, filename, createDate, disqusId)
+	p.posts = append(p.posts, post)
+}
+
+func (p *PageManager) ReadPageFromJsonData(v []byte, filename string) *Page {
+	id := p.Read(v, "page", "post_id")
+	title := p.Read(v, "page", "title")
+
+	thumbUrl := p.Read(v, "thumbImg")
+	imageUrl := p.Read(v, "postImg")
+
+	description := p.Read(v, "page", "excerpt")
+	disqusId := p.Read(v, "page", "custom_fields", "dsq_thread_id", "[0]")
+	createDate := p.Read(v, "page", "date")
+	content := p.Read(v, "page", "content")
+	rawUrl := p.Read(v, "page", "url")
+	path := p.extractPathFromUrl(rawUrl)
+
+	if imageUrl == "" {
+		imageUrl = "https://www.drewing.de/blog/wp-content/themes/drewing2012/silhouette_ingmar_drewing.png"
+	}
+	if thumbUrl == "" {
+		thumbUrl = "https://www.drewing.de/blog/wp-content/themes/drewing2012/silhouette_ingmar_drewing.png"
+	}
+
+	prodDomain := "https://drewing.de"
+
+	return NewPage(id, title, description, content,
+		imageUrl, thumbUrl, prodDomain,
+		path, filename, createDate, disqusId)
 }
 
 func (p *PageManager) GetPosts() []Element {
@@ -228,6 +301,75 @@ func (p *PageManager) convertToElements(pages []*Page) []Element {
 		elements = append(elements, page)
 	}
 	return elements
+}
+
+func (p *PageManager) extractPathFromUrl(raw string) string {
+	s := strings.Split(raw, "/")
+	if len(s) < 3 {
+		log.Fatalf("url too short in %s: %s\n", raw)
+	}
+	return "/" + strings.Join(s[3:], "/")
+}
+
+func (p *PageManager) GetMainNaviLocations(config []byte) []Location {
+	fb := NewLocation(
+		p.Read(config, "context", "fbPage"),
+		"",
+		"Facebook",
+		"",
+		"https://facebook.com",
+		"")
+
+	twitter := NewLocation(
+		p.Read(config, "context", "twitterPage"),
+		"",
+		"Twitter",
+		"",
+		"https://facebook.com",
+		"")
+
+	rss := NewLocation(
+		p.Read(config, "context", "rss"),
+		"",
+		"rss",
+		"",
+		"https://facebook.com",
+		"")
+	return []Location{fb, twitter, rss}
+}
+
+func (p *PageManager) GetFooterNaviLocations(config []byte) []Location {
+	fbShare := NewLocation(
+		p.Read(config, "context", "fbPage"),
+		"",
+		"Share on Facebook",
+		"",
+		p.Read(config, "facebookShare"),
+		"")
+
+	tellAFriend := NewLocation(
+		p.Read(config, "context", "fbPage"),
+		"",
+		"Tell a friend",
+		"",
+		p.Read(config, "tellAFriend"),
+		"")
+
+	return []Location{fbShare, tellAFriend, p.imprintData, p.aboutData, p.booklistData}
+}
+
+func (p *PageManager) ReadFooterData(v []byte) {
+	imprintPath := p.Read(v, "imprint")
+	imprintBytes := fs.ReadByteArrayFromFile(imprintPath)
+	p.imprintData = p.ReadPageFromJsonData(imprintBytes, "/imprint.html")
+
+	booklistPath := p.Read(v, "booklist")
+	booklistBytes := fs.ReadByteArrayFromFile(booklistPath)
+	p.booklistData = p.ReadPageFromJsonData(booklistBytes, "/booklist.html")
+
+	aboutPath := p.Read(v, "about")
+	aboutBytes := fs.ReadByteArrayFromFile(aboutPath)
+	p.aboutData = p.ReadPageFromJsonData(aboutBytes, "/about.html")
 }
 
 func GenerateElementBundles(pages []*Page) []*ElementBundle {

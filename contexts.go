@@ -183,9 +183,7 @@ func (gc *GlobalContext) GetSiteName() string {
 }
 
 func (gc *GlobalContext) GetCss() string {
-	css := `
-
-`
+	css := ""
 	for _, c := range gc.components {
 		css += c.GetCss()
 	}
@@ -246,6 +244,31 @@ func (bc *BlogContext) AddComponents() {
 
 	bc.AddComponent(NewDisqusComponent(bc.GetDisqusShortname()))
 
+	bc.AddComponent(NewCopyRightComponent())
+	bc.AddComponent(NewFooterNaviComponent(bc.GetFooterNavigationLocations()))
+}
+
+/* Footer Context */
+
+func NewFooterContext() *FooterContext {
+	return new(FooterContext)
+}
+
+type FooterContext struct {
+	GlobalContext
+}
+
+func (bc *FooterContext) AddComponents() {
+	bc.AddComponent(NewGlobalCssComponent())
+	bc.AddComponent(NewGoogleComponent(bc))
+	bc.AddComponent(NewTwitterComponent(bc))
+	bc.AddComponent(NewFBComponent(bc))
+	bc.AddComponent(NewCssLinkComponent(bc.GetCssUrl()))
+	bc.AddComponent(NewTitleComponent())
+
+	bc.AddComponent(NewContentComponent())
+	bc.AddComponent(NewMainHeaderComponent(bc))
+	bc.AddComponent(NewMainNaviComponent(bc.GetMainNavigationLocations()))
 	bc.AddComponent(NewCopyRightComponent())
 	bc.AddComponent(NewFooterNaviComponent(bc.GetFooterNavigationLocations()))
 }

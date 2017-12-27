@@ -68,6 +68,9 @@ a:hover {
 	margin: 0 auto;
 	width: 800px;
 }
+p + p {
+	margin-top: 10px;
+}
 `
 }
 
@@ -368,16 +371,20 @@ func (mhc *MainNaviComponent) GetCss() string {
 	top: 80px;
 	background-color: white;
 }
-.mainnavi__navelement {
+.mainnavi__navelement--current,
+a.mainnavi__navelement {
 	display: inline-block;
 	font-family: Arial Black, Arial, Helvetica, sans-serif;
 	font-weight: 900;
 	font-size: 18px;
 	line-height: 20px;
 	text-transform: uppercase;
-	text-decoration: none;
 	color: black;
 	padding: 10px 20px;
+}
+a.mainnavi__navelement:hover {
+	text-decoration: none;
+	color: gray;
 }
 .mainnavi__nav {
 	border-bottom: 2px solid black;
@@ -406,7 +413,7 @@ func (nv *FooterNaviComponent) visitPage(p Element) {
 	for _, l := range nv.locations {
 		if url == l.GetPath() {
 			span := NewNode("span", l.GetTitle(),
-				"class", "footernavi__navelement")
+				"class", "footernavi__navelement--current")
 			nav.AddChild(span)
 		} else {
 			a := NewNode("a", l.GetTitle(),
@@ -434,7 +441,8 @@ func (mhc *FooterNaviComponent) GetCss() string {
 	bottom: 0;
 	background-color: white;
 }
-.footernavi__navelement {
+.footernavi__navelement--current ,
+a.footernavi__navelement {
 	display: inline-block;
 	font-family: Arial Black, Arial, Helvetica, sans-serif;
 	font-weight: 900;
@@ -444,6 +452,10 @@ func (mhc *FooterNaviComponent) GetCss() string {
 	text-decoration: none;
 	color: black;
 	padding: 10px 15px;
+}
+a.footernavi__navelement:hover,
+.footernavi__navelement--current {
+	color: gray;
 }
 `
 }
