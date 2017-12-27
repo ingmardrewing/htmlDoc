@@ -229,9 +229,9 @@ func (bc *BlogContext) AddComponents() {
 	bc.AddComponent(NewFBComponent(bc))
 	bc.AddComponent(NewCssLinkComponent(bc.GetCssUrl()))
 	bc.AddComponent(NewTitleComponent())
+	bc.AddComponent(NewContentComponent())
 	bc.AddComponent(NewMainHeaderComponent(bc))
 	bc.AddComponent(NewMainNaviComponent(bc.GetMainNavigationLocations()))
-	bc.AddComponent(NewContentComponent())
 	bc.AddComponent(NewDisqusComponent(bc.GetDisqusShortname()))
 	bc.AddComponent(NewCopyRightComponent())
 	bc.AddComponent(NewFooterNaviComponent(bc.GetFooterNavigationLocations()))
@@ -273,11 +273,9 @@ func (bn *BlogNaviContext) AddComponents() {
 	bn.AddComponent(NewTitleComponent())
 
 	// body
+	bn.AddComponent(NewBlogNaviContextComponent(bn))
 	bn.AddComponent(NewMainHeaderComponent(bn))
 	bn.AddComponent(NewMainNaviComponent(bn.GetMainNavigationLocations()))
-
-	bn.AddComponent(NewBlogNaviContextComponent(bn))
-
 	bn.AddComponent(NewCopyRightComponent())
 	bn.AddComponent(NewFooterNaviComponent(bn.GetFooterNavigationLocations()))
 }

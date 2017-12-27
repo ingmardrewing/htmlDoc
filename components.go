@@ -232,11 +232,16 @@ func (b *BlogNaviComponent) addNext(p Element, n *Node) {
 
 func (b *BlogNaviComponent) addBodyNodes(p Element) {
 	nav := NewNode("nav", "", "class", "blognavicomponent__nav")
+
 	b.addPrevious(p, nav)
 	b.addNext(p, nav)
 
 	d := NewNode("div", "", "class", "blognavicomponent")
-	d.AddChild(nav)
+
+	inx := b.getIndexOfPage(p)
+	if inx != len(b.context.GetElements())-1 {
+		d.AddChild(nav)
+	}
 	d.AddChild(NewNode("div", p.GetContent()))
 	d.AddChild(nav)
 
@@ -290,16 +295,32 @@ func (b *BlogNaviComponent) GetCss() string {
 	font-weight: 900;
 	font-size: 16px;
 }
+
 .blognavientry__tile {
+	display: block;
+	position: relative;
+	width: 390px;
+	height: 430px;
+	margin-bottom: 20px;
+	float: left;
+}
+
+.blognavientry__tile:nth-child(odd) {
+	margin-right: 20px;
+}
+
+.blognavientry__image {
 	display: block;
 	width: 390px;
 	height: 390px;
 	background-size: cover;
-	margin-bottom: 20px;
-	float: left;
 }
-.blognavientry__tile:nth-child(odd) {
-	margin-right: 20px;
+.blognavientry__tile h2 {
+	font-family: Arial Black, Arial, Helvetica, sans-serif;
+	text-transform: uppercase;
+	color: black;
+	text-decoration: none;
+	margin-top: 0;
 }
 `
 }

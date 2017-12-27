@@ -191,14 +191,15 @@ func (p *PageManager) generateNaviPageContent(bundle *ElementBundle) string {
 	n := NewNode("div", "", "class", "blognavipage")
 	elems := bundle.GetElements()
 	for _, e := range elems {
-		h2 := NewNode("h2", e.GetTitle())
-		h3 := NewNode("h3", e.GetDescription())
 		a := NewNode("a", "",
 			"href", e.GetDomain()+e.GetPath(),
-			"style", "background-image: url("+e.GetThumbnailUrl()+")",
 			"class", "blognavientry__tile")
+		span := NewNode("span", " ",
+			"style", "background-image: url("+e.GetThumbnailUrl()+")",
+			"class", "blognavientry__image")
+		h2 := NewNode("h2", e.GetTitle())
+		a.AddChild(span)
 		a.AddChild(h2)
-		a.AddChild(h3)
 		n.AddChild(a)
 	}
 	n.AddChild(NewNode("div", "", "style", "clear: both"))
@@ -230,16 +231,31 @@ func (p *PageManager) convertToElements(pages []*Page) []Element {
 }
 
 func GenerateElementBundles(pages []*Page) []*ElementBundle {
+	length := len(pages)
+	reversed := []*Page{}
+	for i := length - 1; i >= 0; i-- {
+		reversed = append(reversed, pages[i])
+	}
+
 	b := NewElementBundle()
 	bundles := []*ElementBundle{}
-	for _, p := range pages {
+	for _, p := range reversed {
 		b.AddElement(p)
 		if b.full() {
 			bundles = append(bundles, b)
 			b = NewElementBundle()
 		}
 	}
-	return bundles
+	if !b.full() {
+		bundles = append(bundles, b)
+	}
+
+	length = len(bundles)
+	revbundles := []*ElementBundle{}
+	for i := length - 1; i >= 0; i-- {
+		revbundles = append(revbundles, bundles[i])
+	}
+	return revbundles
 }
 
 func NewElementBundle() *ElementBundle {
@@ -259,10 +275,5 @@ func (l *ElementBundle) full() bool {
 }
 
 func (l *ElementBundle) GetElements() []Element {
-	length := len(l.elements)
-	reversed := []Element{}
-	for i := length - 1; i >= 0; i-- {
-		reversed = append(reversed, l.elements[i])
-	}
-	return reversed
+	return l.elements
 }
