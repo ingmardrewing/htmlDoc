@@ -193,7 +193,18 @@ func (gc *GlobalContext) GetCss() string {
 }
 
 func (gc *GlobalContext) GetJs() string {
-	return ""
+	jsCode := ""
+	for _, c := range gc.components {
+		jsCode += c.GetJs()
+	}
+
+	m := minify.New()
+	m.AddFunc("text/javascript", js.Minify)
+	s, err := m.String("text/javascript", jsCode)
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf(`<script>%s</script>`, s)
 }
 
 func (gc *GlobalContext) minifyCss(txt string) string {
@@ -232,24 +243,11 @@ func (bc *BlogContext) AddComponents() {
 	bc.AddComponent(NewContentComponent())
 	bc.AddComponent(NewMainHeaderComponent(bc))
 	bc.AddComponent(NewMainNaviComponent(bc.GetMainNavigationLocations()))
+
 	bc.AddComponent(NewDisqusComponent(bc.GetDisqusShortname()))
+
 	bc.AddComponent(NewCopyRightComponent())
 	bc.AddComponent(NewFooterNaviComponent(bc.GetFooterNavigationLocations()))
-}
-
-func (bc *BlogContext) GetJs() string {
-	jsCode := ""
-	for _, c := range bc.components {
-		jsCode += c.GetJs()
-	}
-
-	m := minify.New()
-	m.AddFunc("text/javascript", js.Minify)
-	s, err := m.String("text/javascript", jsCode)
-	if err != nil {
-		panic(err)
-	}
-	return fmt.Sprintf(`<script>%s</script>`, s)
 }
 
 /* Blog Navi Context */

@@ -232,21 +232,12 @@ func (b *BlogNaviComponent) addNext(p Element, n *Node) {
 
 func (b *BlogNaviComponent) addBodyNodes(p Element) {
 	nav := NewNode("nav", "", "class", "blognavicomponent__nav")
-
 	b.addPrevious(p, nav)
 	b.addNext(p, nav)
-
 	d := NewNode("div", "", "class", "blognavicomponent")
-
-	inx := b.getIndexOfPage(p)
-	if inx != len(b.context.GetElements())-1 {
-		d.AddChild(nav)
-	}
 	d.AddChild(NewNode("div", p.GetContent()))
 	d.AddChild(nav)
-
 	wn := b.wrap(d)
-
 	p.addBodyNodes([]*Node{wn})
 }
 
@@ -254,9 +245,7 @@ func (b *BlogNaviComponent) visitPage(p Element) {
 	if len(b.context.GetElements()) < 3 {
 		return
 	}
-	//b.addHeaderNodes(p)
 	b.addBodyNodes(p)
-
 }
 
 func (b *BlogNaviComponent) getIndexOfPage(p Element) int {
@@ -272,7 +261,7 @@ func (b *BlogNaviComponent) GetCss() string {
 	return `
 .blognavicomponent {
 	text-align: left;
-	padding-top: 145px;
+	padding-top: 123px;
 	padding-bottom: 20px;
 }
 .blognavicomponent__nav {
@@ -296,13 +285,14 @@ func (b *BlogNaviComponent) GetCss() string {
 	font-size: 16px;
 }
 
-.blognavientry__tile {
+a.blognavientry__tile {
 	display: block;
 	position: relative;
 	width: 390px;
 	height: 430px;
 	margin-bottom: 20px;
 	float: left;
+	text-decoration: none;
 }
 
 .blognavientry__tile:nth-child(odd) {
@@ -319,8 +309,10 @@ func (b *BlogNaviComponent) GetCss() string {
 	font-family: Arial Black, Arial, Helvetica, sans-serif;
 	text-transform: uppercase;
 	color: black;
-	text-decoration: none;
 	margin-top: 0;
+}
+.blognavientry__tile:hover h2 {
+	color: grey;
 }
 `
 }
@@ -451,7 +443,7 @@ func (mhc *FooterNaviComponent) GetCss() string {
 	text-transform: uppercase;
 	text-decoration: none;
 	color: black;
-	padding: 10px 20px;
+	padding: 10px 15px;
 }
 `
 }
@@ -770,7 +762,7 @@ func NewCopyRightComponent() *CopyRightComponent {
 func (crc *CopyRightComponent) visitPage(p Element) {
 	n := NewNode("div", `
 	<a rel="license" class="copyright__cc" href="https://creativecommons.org/licenses/by-nc-nd/3.0/"></a>
-	<p class="copyright__license">(c) 2017 by Ingmar Drewing </p><p class="copyright__license">Except where otherwise noted, content on this site is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/3.0/">Create Commons Attribution-NonCommercial-NoDerivs 3.0 Unported (CC BY-NC-ND 3.0) license</a>.</p><p class="copyright__license">Soweit nicht anders explizit ausgewiesen, stehen die Inhalte auf dieser Website unter der <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/3.0/">Creative Commons Namensnennung-NichtKommerziell-KeineBearbeitung (CC BY-NC-ND 3.0)</a> Lizenz. Unless otherwise noted the author of the content on this page is <a href="https://plus.google.com/113943655600557711368?rel=author">Ingmar Drewing</a></p>
+	<p class="copyright__license">&copy; 2017 by Ingmar Drewing </p><p class="copyright__license">Except where otherwise noted, content on this site is licensed under a <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/3.0/">Create Commons Attribution-NonCommercial-NoDerivs 3.0 Unported (CC BY-NC-ND 3.0) license</a>.</p><p class="copyright__license">Soweit nicht anders explizit ausgewiesen, stehen die Inhalte auf dieser Website unter der <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/3.0/">Creative Commons Namensnennung-NichtKommerziell-KeineBearbeitung (CC BY-NC-ND 3.0)</a> Lizenz. Unless otherwise noted the author of the content on this page is <a href="https://plus.google.com/113943655600557711368?rel=author">Ingmar Drewing</a></p>
 	`, "class", "copyright")
 	wn := crc.wrap(n)
 	p.addBodyNodes([]*Node{wn})
@@ -779,11 +771,12 @@ func (crc *CopyRightComponent) visitPage(p Element) {
 func (crc *CopyRightComponent) GetCss() string {
 	return `
 .copyright {
+	background-color: black;
+	color: white;
 	text-align: left;
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 14px;
-	color: black;
-	padding: 20px 0 70px;
+	padding: 20px 20px 50px;
 }
 .copyright__license {
 	margin-top: 20px;
