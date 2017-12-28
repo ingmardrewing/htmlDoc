@@ -232,8 +232,8 @@ type BlogContext struct {
 }
 
 func (bc *BlogContext) AddComponents() {
-	bn.AddComponent(NewGeneralMetaComponent())
-	bn.AddComponent(NewFaviconComponent())
+	bc.AddComponent(NewGeneralMetaComponent())
+	bc.AddComponent(NewFaviconComponent())
 	bc.AddComponent(NewGlobalCssComponent())
 	bc.AddComponent(NewGoogleComponent(bc))
 	bc.AddComponent(NewTwitterComponent(bc))
@@ -261,8 +261,8 @@ type FooterContext struct {
 }
 
 func (bc *FooterContext) AddComponents() {
-	bn.AddComponent(NewGeneralMetaComponent())
-	bn.AddComponent(NewFaviconComponent())
+	bc.AddComponent(NewGeneralMetaComponent())
+	bc.AddComponent(NewFaviconComponent())
 	bc.AddComponent(NewGlobalCssComponent())
 	bc.AddComponent(NewGoogleComponent(bc))
 	bc.AddComponent(NewTwitterComponent(bc))
