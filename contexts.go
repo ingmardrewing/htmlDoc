@@ -86,6 +86,9 @@ func (gc *GlobalContext) SetGlobalFields(
 	gc.homeUrl = home
 	gc.disqusShortname = disqusShortname
 	gc.mainNavigationLocations = mainNavi
+	fmt.Println("YYYYY")
+	fmt.Println(footerNavi[0].GetPath())
+	fmt.Println("YYYYY")
 	gc.footerNavigationLocations = footerNavi
 }
 
@@ -274,7 +277,12 @@ func (bc *FooterContext) AddComponents() {
 	bc.AddComponent(NewMainHeaderComponent(bc))
 	bc.AddComponent(NewMainNaviComponent(bc.GetMainNavigationLocations()))
 	bc.AddComponent(NewCopyRightComponent())
-	bc.AddComponent(NewFooterNaviComponent(bc.GetFooterNavigationLocations()))
+	fnl := bc.GetFooterNavigationLocations()
+	fmt.Println("XXXX")
+	fmt.Println(fnl[0].GetPath())
+	fmt.Println(fnl[1].GetPath())
+	fmt.Println("XXXX")
+	bc.AddComponent(NewFooterNaviComponent(fnl))
 }
 
 /* Blog Navi Context */

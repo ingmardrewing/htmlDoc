@@ -1,7 +1,6 @@
 package htmlDoc
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -236,9 +235,6 @@ func (p *PageManager) AddPostFromJsonData(v []byte) {
 	thumbUrl := p.Read(v, "thumbImg")
 	imageUrl := p.Read(v, "postImg")
 
-	fmt.Println(thumbUrl)
-	fmt.Println(imageUrl)
-
 	description := p.Read(v, "post", "excerpt")
 	disqusId := p.Read(v, "post", "custom_fields", "dsq_thread_id", "[0]")
 	createDate := p.Read(v, "post", "date")
@@ -325,35 +321,18 @@ func (p *PageManager) GetMainNaviLocations(config []byte) []Location {
 		"",
 		"Twitter",
 		"",
-		"https://facebook.com",
+		"https://twitter.com/ingmardrewing",
 		"")
-
-	rss := NewLocation(
-		p.Read(config, "context", "rss"),
-		"",
-		"rss",
-		"",
-		"https://facebook.com",
-		"")
-	return []Location{fb, twitter, rss}
+	// TODO add rss feed
+	return []Location{fb, twitter}
 }
 
 func (p *PageManager) GetFooterNaviLocations(config []byte) []Location {
-	fbShare := NewLocation(
-		p.Read(config, "context", "fbPage"),
-		"",
-		"Share on Facebook",
-		"",
-		p.Read(config, "facebookShare"),
-		"")
+	fbs := p.Read(config, "facebookShare")
+	fbShare := NewLocation(fbs, "", "Share on Facebook", "", "", "")
 
-	tellAFriend := NewLocation(
-		p.Read(config, "context", "fbPage"),
-		"",
-		"Tell a friend",
-		"",
-		p.Read(config, "tellAFriend"),
-		"")
+	taf := p.Read(config, "tellAFriend")
+	tellAFriend := NewLocation(taf, "", "Tell a friend", "", "", "")
 
 	return []Location{fbShare, tellAFriend, p.imprintData, p.aboutData, p.booklistData}
 }
