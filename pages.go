@@ -205,8 +205,8 @@ func (p *PageManager) generateNaviPageContent(bundle *ElementBundle) string {
 		if ta == "" {
 			ta = e.GetImageUrl()
 		}
-		a := NewNode("a", "<!-- "+e.GetImageUrl()+" -->",
-			"href", e.GetDomain()+e.GetPath(),
+		a := NewNode("a", " ",
+			"href", e.GetPath(),
 			"class", "blognavientry__tile")
 		span := NewNode("span", " ",
 			"style", "background-image: url("+e.GetThumbnailUrl()+")",
@@ -308,12 +308,20 @@ func (p *PageManager) extractPathFromUrl(raw string) string {
 }
 
 func (p *PageManager) GetMainNaviLocations(config []byte) []Location {
+	blog := NewLocation(
+		"/blog/index.html",
+		"",
+		"Blog",
+		"",
+		"",
+		"")
+
 	fb := NewLocation(
 		p.Read(config, "context", "fbPage"),
 		"",
 		"Facebook",
 		"",
-		"https://facebook.com",
+		"",
 		"")
 
 	twitter := NewLocation(
@@ -321,10 +329,10 @@ func (p *PageManager) GetMainNaviLocations(config []byte) []Location {
 		"",
 		"Twitter",
 		"",
-		"https://twitter.com/ingmardrewing",
+		"",
 		"")
 	// TODO add rss feed
-	return []Location{fb, twitter}
+	return []Location{blog, fb, twitter}
 }
 
 func (p *PageManager) GetFooterNaviLocations(config []byte) []Location {

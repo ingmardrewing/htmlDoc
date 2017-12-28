@@ -232,7 +232,7 @@ type CssLinkComponent struct {
 
 func NewCssLinkComponent(url string) *CssLinkComponent {
 	clc := new(CssLinkComponent)
-	clc.url = "/drewing2018" + url
+	clc.url = url
 	return clc
 }
 
@@ -263,7 +263,7 @@ func (b *BlogNaviComponent) addPrevious(p Element, n *Node) {
 	} else {
 		elems := b.context.GetElements()
 		pv := elems[inx-1]
-		a := NewNode("a", "< previous posts", "href", "/drewing2018"+pv.GetPath(), "rel", "prev", "class", "blognavicomponent__previous")
+		a := NewNode("a", "< previous posts", "href", pv.GetPath(), "rel", "prev", "class", "blognavicomponent__previous")
 		n.AddChild(a)
 	}
 }
@@ -276,7 +276,7 @@ func (b *BlogNaviComponent) addNext(p Element, n *Node) {
 	} else {
 		elems := b.context.GetElements()
 		nx := elems[inx+1]
-		a := NewNode("a", "next posts >", "href", "/drewing2018"+nx.GetPath(), "rel", "next", "class", "blognavicomponent__next")
+		a := NewNode("a", "next posts >", "href", nx.GetPath(), "rel", "next", "class", "blognavicomponent__next")
 		n.AddChild(a)
 	}
 }
@@ -391,7 +391,7 @@ func (nv *MainNaviComponent) visitPage(p Element) {
 	for _, l := range nv.locations {
 		if url == l.GetPath() {
 			span := NewNode("span", l.GetTitle(),
-				"class", "mainnavi__navelement")
+				"class", "mainnavi__navelement--current")
 			nav.AddChild(span)
 		} else {
 			a := NewNode("a", l.GetTitle(),
@@ -433,6 +433,7 @@ a.mainnavi__navelement {
 	color: black;
 	padding: 10px 20px;
 }
+.mainnavi__navelement--current,
 a.mainnavi__navelement:hover {
 	text-decoration: none;
 	color: gray;
