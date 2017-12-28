@@ -74,6 +74,56 @@ p + p {
 `
 }
 
+/* GeneralMetaComponent */
+
+func NewGeneralMetaComponent() *GeneralMetaComponent {
+	return new(GeneralMetaComponent)
+}
+
+type GeneralMetaComponent struct {
+	abstractComponent
+}
+
+func (g *GeneralMetaComponent) visitPage(p Element) {
+	m := []*Node{
+		NewNode("meta", "", "viewport", "width=device-width, initial-scale=1.0"),
+		NewNode("meta", "", "http-equiv", "imagetoolbar", "content", "no"),
+		NewNode("meta", "", "robots", "index,follow"),
+		NewNode("meta", "", "author", "Ingmar Drewing"),
+		NewNode("meta", "", "publisher", "Ingmar Drewing"),
+		NewNode("meta", "", "keywords", "storytelling, illustration, drawing, web comic, comic, cartoon, caricatures"),
+		NewNode("meta", "", "DC.subject", "storytelling, illustration, drawing, web comic, comic, cartoon, caricatures"),
+		NewNode("meta", "", "page-topic", "art"),
+		NewNode("meta", "", "http-equiv", "Language", "content", "en"),
+		NewNode("meta", "", "http-equiv", "Content-Language", "content", "en"),
+		NewNode("meta", "", "http-equiv", "cache-control", "content", "Private"),
+		NewNode("meta", "", "http-equiv", "pragma", "content", "Private"),
+		NewNode("meta", "", "http-equiv", "expires", "content", "0"),
+		NewNode("meta", "", "charset", "UTF-8"),
+		NewNode("meta", "", "http-equiv", "content-type", "content", "text/html;charset=UTF-8")}
+	p.addHeaderNodes(m)
+}
+
+/* favicon component */
+
+func NewFaviconComponent() *FaviconComponent {
+	return new(FaviconComponent)
+}
+
+type FaviconComponent struct {
+	abstractComponent
+}
+
+func (f *FaviconComponent) visitPage(p Element) {
+	m := []*Node{
+		NewNode("link", "", "rel", "icon", "type", "image/png", "sizes", "16x16", "href", "/icons/favicon-16x16.png"),
+		NewNode("link", "", "rel", "icon", "type", "image/png", "sizes", "32x32", "href", "/icons/favicon-32x32.png"),
+		NewNode("link", "", "rel", "icon", "type", "image/png", "sizes", "192x192", "href", "/icons/android-192x192.png"),
+		NewNode("link", "", "rel", "apple-touch-icon", "type", "image/png", "sizes", "180x180", "href", "/icons/apple-touch-icon-180x180.png")}
+		NewNode("meta", "", "name", "msapplication-config", "content", "/icons/browserconfig.xml")}
+	p.addHeaderNodes(m)
+}
+
 /* fb component */
 type FBComponent struct {
 	abstractComponent
@@ -171,8 +221,6 @@ func NewTitleComponent() *TitleComponent {
 func (tc *TitleComponent) visitPage(p Element) {
 	title := NewNode("title", p.GetTitle())
 	p.addHeaderNodes([]*Node{title})
-	meta := NewNode("meta", "", "charset", "UTF-8")
-	p.addHeaderNodes([]*Node{meta})
 }
 
 /* css link component */
@@ -270,6 +318,8 @@ func (b *BlogNaviComponent) GetCss() string {
 .blognavicomponent__nav {
 	text-align: center;
 	color: lightgrey;
+	margin-top: 40px;
+	margin-bottom: 20px;
 }
 .blognavicomponent__nav span {
 	font-family: Arial Black, Arial, Helvetica, sans-serif;
@@ -292,7 +342,7 @@ a.blognavientry__tile {
 	display: block;
 	position: relative;
 	width: 390px;
-	height: 430px;
+	height: 470px;
 	margin-bottom: 20px;
 	float: left;
 	text-decoration: none;
@@ -312,7 +362,8 @@ a.blognavientry__tile {
 	font-family: Arial Black, Arial, Helvetica, sans-serif;
 	text-transform: uppercase;
 	color: black;
-	margin-top: 0;
+	margin-top: 4px;
+	line-height: 24px;
 }
 .blognavientry__tile:hover h2 {
 	color: grey;
