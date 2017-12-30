@@ -247,7 +247,9 @@ func (bc *BlogContext) AddComponents() {
 	bc.AddComponent(NewDisqusComponent(bc.GetDisqusShortname()))
 
 	bc.AddComponent(NewCopyRightComponent())
-	bc.AddComponent(NewFooterNaviComponent(bc.GetFooterNavigationLocations()))
+	footerLocs := bc.GetFooterNavigationLocations()
+	fmt.Println("YYYY", len(footerLocs))
+	bc.AddComponent(NewFooterNaviComponent(footerLocs))
 }
 
 /* Footer Context */
@@ -274,8 +276,9 @@ func (bc *FooterContext) AddComponents() {
 	bc.AddComponent(NewMainHeaderComponent(bc))
 	bc.AddComponent(NewMainNaviComponent(bc.GetMainNavigationLocations()))
 	bc.AddComponent(NewCopyRightComponent())
-	fnl := bc.GetFooterNavigationLocations()
-	bc.AddComponent(NewFooterNaviComponent(fnl))
+	footerLocs := bc.GetFooterNavigationLocations()
+	fmt.Println("Y1YYY", len(footerLocs))
+	bc.AddComponent(NewFooterNaviComponent(footerLocs))
 }
 
 /* Blog Navi Context */
@@ -305,5 +308,8 @@ func (bn *BlogNaviContext) AddComponents() {
 	bn.AddComponent(NewMainHeaderComponent(bn))
 	bn.AddComponent(NewMainNaviComponent(bn.GetMainNavigationLocations()))
 	bn.AddComponent(NewCopyRightComponent())
-	bn.AddComponent(NewFooterNaviComponent(bn.GetFooterNavigationLocations()))
+
+	footerLocs := bn.GetFooterNavigationLocations()
+	fmt.Println("Y2YYY", len(footerLocs))
+	bn.AddComponent(NewFooterNaviComponent(footerLocs))
 }

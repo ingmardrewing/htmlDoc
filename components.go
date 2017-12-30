@@ -449,6 +449,7 @@ a.mainnavi__navelement:hover {
 func NewFooterNaviComponent(locations []Location) *FooterNaviComponent {
 	nc := new(FooterNaviComponent)
 	nc.locations = locations
+	fmt.Println("ZZZZ", len(locations))
 	return nc
 }
 
@@ -841,6 +842,7 @@ func (crc *CopyRightComponent) GetCss() string {
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 14px;
 	padding: 20px 20px 50px;
+	margin-top: 20px;
 }
 .copyright__license {
 	margin-top: 20px;

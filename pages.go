@@ -1,11 +1,10 @@
 package htmlDoc
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
-
-	"github.com/ingmardrewing/fs"
 )
 
 type Location interface {
@@ -85,7 +84,7 @@ func NewPage(
 	thumbUrl, imageUrl, prodDomain,
 	path, filename, publishedTime,
 	disqusId string) *Page {
-	p := &Page{
+	return &Page{
 		Loc: Loc{
 			title:        title,
 			url:          path + filename,
@@ -100,7 +99,6 @@ func NewPage(
 		PublishedTime: publishedTime,
 		DisqusId:      disqusId,
 		doc:           NewHtmlDoc()}
-	return p
 }
 
 func (p *Page) Render() string {
@@ -159,6 +157,7 @@ type PageManager struct {
 	imprintData   *Page
 	posts         []*Page
 	pages         []*Page
+	marginal      []*Page
 	postNaviPages []*Page
 }
 
@@ -221,7 +220,11 @@ func (p *PageManager) generateNaviPageContent(bundle *ElementBundle) string {
 }
 
 func (p *PageManager) GetFooterPages() []Element {
-	return []Element{p.imprintData, p.aboutData, p.booklistData}
+	elms := []Element{}
+	for _, pg := range p.marginal {
+		elms = append(elms, pg)
+	}
+	return elms
 }
 
 func (p *PageManager) AddPostNaviPage(page *Page) {
@@ -251,9 +254,12 @@ func (p *PageManager) AddPostFromJsonData(v []byte) {
 	p.posts = append(p.posts, post)
 }
 
-func (p *PageManager) ReadPageFromJsonData(v []byte, filename string) *Page {
+func (p *PageManager) AddMarginalFromJsonData(v []byte) {
 	id := p.Read(v, "page", "post_id")
-	title := p.Read(v, "page", "title")
+	title := p.Read(v, "title")
+	fmt.Println("title", title)
+	filename := p.Read(v, "filename")
+	fmt.Println("filename", filename)
 
 	thumbUrl := p.Read(v, "thumbImg")
 	imageUrl := p.Read(v, "postImg")
@@ -261,9 +267,8 @@ func (p *PageManager) ReadPageFromJsonData(v []byte, filename string) *Page {
 	description := p.Read(v, "page", "excerpt")
 	disqusId := p.Read(v, "page", "custom_fields", "dsq_thread_id", "[0]")
 	createDate := p.Read(v, "page", "date")
-	content := p.Read(v, "page", "content")
-	rawUrl := p.Read(v, "page", "url")
-	path := p.extractPathFromUrl(rawUrl)
+	content := p.Read(v, "content")
+	path := "/blog/"
 
 	if imageUrl == "" {
 		imageUrl = "https://www.drewing.de/blog/wp-content/themes/drewing2012/silhouette_ingmar_drewing.png"
@@ -273,10 +278,10 @@ func (p *PageManager) ReadPageFromJsonData(v []byte, filename string) *Page {
 	}
 
 	prodDomain := "https://drewing.de"
-
-	return NewPage(id, title, description, content,
+	marginalPage := NewPage(id, title, description, content,
 		imageUrl, thumbUrl, prodDomain,
 		path, filename, createDate, disqusId)
+	p.marginal = append(p.marginal, marginalPage)
 }
 
 func (p *PageManager) GetPosts() []Element {
@@ -308,55 +313,29 @@ func (p *PageManager) extractPathFromUrl(raw string) string {
 }
 
 func (p *PageManager) GetMainNaviLocations(config []byte) []Location {
-	blog := NewLocation(
-		"/blog/index.html",
-		"",
-		"Blog",
-		"",
-		"",
-		"")
+	blogMain := p.Read(config, "blogMain")
+	blog := NewLocation(blogMain, "", "Blog", "", "", "")
 
-	fb := NewLocation(
-		p.Read(config, "context", "fbPage"),
-		"",
-		"Facebook",
-		"",
-		"",
-		"")
+	fbPage := p.Read(config, "context", "fbPage")
+	fb := NewLocation(fbPage, "", "Facebook", "", "", "")
 
-	twitter := NewLocation(
-		p.Read(config, "context", "twitterPage"),
-		"",
-		"Twitter",
-		"",
-		"",
-		"")
+	tPage := p.Read(config, "context", "twitterPage")
+	twitter := NewLocation(tPage, "", "Twitter", "", "", "")
+
 	// TODO add rss feed
 	return []Location{blog, fb, twitter}
 }
 
 func (p *PageManager) GetFooterNaviLocations(config []byte) []Location {
 	fbs := p.Read(config, "facebookShare")
-	fbShare := NewLocation(fbs, "", "Share on Facebook", "", "", "")
-
 	taf := p.Read(config, "tellAFriend")
-	tellAFriend := NewLocation(taf, "", "Tell a friend", "", "", "")
-
-	return []Location{fbShare, tellAFriend, p.imprintData, p.aboutData, p.booklistData}
-}
-
-func (p *PageManager) ReadFooterData(v []byte) {
-	imprintPath := p.Read(v, "imprint")
-	imprintBytes := fs.ReadByteArrayFromFile(imprintPath)
-	p.imprintData = p.ReadPageFromJsonData(imprintBytes, "/imprint.html")
-
-	booklistPath := p.Read(v, "booklist")
-	booklistBytes := fs.ReadByteArrayFromFile(booklistPath)
-	p.booklistData = p.ReadPageFromJsonData(booklistBytes, "/booklist.html")
-
-	aboutPath := p.Read(v, "about")
-	aboutBytes := fs.ReadByteArrayFromFile(aboutPath)
-	p.aboutData = p.ReadPageFromJsonData(aboutBytes, "/about.html")
+	footerLocs := []Location{
+		NewLocation(fbs, "", "Share on Facebook", "", "", ""),
+		NewLocation(taf, "", "Tell a friend", "", "", "")}
+	for _, p := range p.marginal {
+		footerLocs = append(footerLocs, p)
+	}
+	return footerLocs
 }
 
 func GenerateElementBundles(pages []*Page) []*ElementBundle {
