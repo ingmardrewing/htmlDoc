@@ -189,6 +189,7 @@ func (p *PageManager) GeneratePostNaviPages(atPath string) {
 		if i == last {
 			filename = "index.html"
 		}
+		// TODO fix description definition for post navi pages
 		pnp := NewPage(ix, "blog navi", "descr ...",
 			naviPageContent, "", "", "https://drewing.de",
 			atPath, filename, "", "")
@@ -232,6 +233,7 @@ func (p *PageManager) AddPostNaviPage(page *Page) {
 }
 
 func (p *PageManager) AddPostFromJsonData(v []byte) {
+	// TODO factor out json knowledge
 	id := p.Read(v, "post", "post_id")
 	title := p.Read(v, "post", "title")
 
@@ -255,6 +257,7 @@ func (p *PageManager) AddPostFromJsonData(v []byte) {
 }
 
 func (p *PageManager) AddMarginalFromJsonData(v []byte) {
+	// TODO factor out json knowledge
 	id := p.Read(v, "page", "post_id")
 	title := p.Read(v, "title")
 	fmt.Println("title", title)
