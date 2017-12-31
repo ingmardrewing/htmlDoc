@@ -457,7 +457,7 @@ func (nv *FooterNaviComponent) visitPage(p Element) {
 	nav := NewNode("nav", "",
 		"class", "footernavi")
 	url := p.GetPath()
-	for _, l := range nv.abstractComponent.context.GetMainNavigationLocations() {
+	for _, l := range nv.abstractComponent.context.GetFooterNavigationLocations() {
 		if url == l.GetPath() {
 			span := NewNode("span", l.GetTitle(),
 				"class", "footernavi__navelement--current")
