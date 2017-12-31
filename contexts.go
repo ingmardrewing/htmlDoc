@@ -216,6 +216,8 @@ func fillContextWithComponents(context Context, components ...component) {
 	}
 }
 
+var components = []component{}
+
 func newContext(mainnavi, footernavi []Location, contentComponents []component) Context {
 	c := new(ContextImpl)
 	c.mainNavigationLocations = mainnavi
@@ -239,7 +241,16 @@ func newContext(mainnavi, footernavi []Location, contentComponents []component) 
 		NewCopyRightComponent(),
 		NewFooterNaviComponent())
 
+	components = append(components, c.GetComponents()...)
 	return c
+}
+
+func GetCompoundCss() string {
+	cssStr := ""
+	for _, comp := range components {
+		cssStr += comp.GetCss()
+	}
+	return cssStr
 }
 
 /* Blog Context */
