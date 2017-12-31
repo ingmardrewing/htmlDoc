@@ -10,9 +10,16 @@ type component interface {
 	visitPage(p Element)
 	GetCss() string
 	GetJs() string
+	SetContext(context Context)
 }
 
-type abstractComponent struct{}
+type abstractComponent struct {
+	context Context
+}
+
+func (ac *abstractComponent) SetContext(context Context) {
+	ac.context = context
+}
 
 func (ac *abstractComponent) GetCss() string {
 	return ""
@@ -127,12 +134,10 @@ func (f *FaviconComponent) visitPage(p Element) {
 /* fb component */
 type FBComponent struct {
 	abstractComponent
-	context Context
 }
 
-func NewFBComponent(context Context) *FBComponent {
+func NewFBComponent() *FBComponent {
 	fb := new(FBComponent)
-	fb.context = context
 	return fb
 }
 
@@ -142,12 +147,12 @@ func (fbc *FBComponent) visitPage(p Element) {
 		NewNode("meta", "", "property", "og:url", "content", p.GetPath()),
 		NewNode("meta", "", "property", "og:image", "content", p.GetImageUrl()),
 		NewNode("meta", "", "property", "og:description", "content", p.GetDescription()),
-		NewNode("meta", "", "property", "og:site_name", "content", fbc.context.GetSiteName()),
-		NewNode("meta", "", "property", "og:type", "content", fbc.context.GetOGType()),
+		NewNode("meta", "", "property", "og:site_name", "content", fbc.abstractComponent.context.GetSiteName()),
+		NewNode("meta", "", "property", "og:type", "content", fbc.abstractComponent.context.GetOGType()),
 		NewNode("meta", "", "property", "article:published_time", "content", p.GetPublishedTime()),
 		NewNode("meta", "", "property", "article:modified_time", "content", p.GetPublishedTime()),
-		NewNode("meta", "", "property", "article:section", "content", fbc.context.GetContentSection()),
-		NewNode("meta", "", "property", "article:tag", "content", fbc.context.GetContentTags())}
+		NewNode("meta", "", "property", "article:section", "content", fbc.abstractComponent.context.GetContentSection()),
+		NewNode("meta", "", "property", "article:tag", "content", fbc.abstractComponent.context.GetContentTags())}
 
 	p.addHeaderNodes(m)
 }
@@ -156,12 +161,10 @@ func (fbc *FBComponent) visitPage(p Element) {
 
 type GoogleComponent struct {
 	abstractComponent
-	context Context
 }
 
-func NewGoogleComponent(context Context) *GoogleComponent {
+func NewGoogleComponent() *GoogleComponent {
 	gc := new(GoogleComponent)
-	gc.context = context
 	return gc
 }
 
@@ -177,12 +180,10 @@ func (goo *GoogleComponent) visitPage(p Element) {
 
 type TwitterComponent struct {
 	abstractComponent
-	context Context
 }
 
-func NewTwitterComponent(context Context) *TwitterComponent {
+func NewTwitterComponent() *TwitterComponent {
 	t := new(TwitterComponent)
-	t.context = context
 	return t
 }
 
@@ -190,10 +191,10 @@ func (tw *TwitterComponent) visitPage(p Element) {
 	m := []*Node{
 		NewNode("meta", "",
 			"name", "t:card",
-			"content", tw.context.GetTwitterCardType()),
+			"content", tw.abstractComponent.context.GetTwitterCardType()),
 		NewNode("meta", "",
 			"name", "t:site",
-			"content", tw.context.GetTwitterHandle()),
+			"content", tw.abstractComponent.context.GetTwitterHandle()),
 		NewNode("meta", "",
 			"name", "t:title",
 			"content", p.GetTitle()),
@@ -202,7 +203,7 @@ func (tw *TwitterComponent) visitPage(p Element) {
 			"content", p.GetDescription()),
 		NewNode("meta", "",
 			"name", "t:creator",
-			"content", tw.context.GetTwitterHandle()),
+			"content", tw.abstractComponent.context.GetTwitterHandle()),
 		NewNode("meta", "",
 			"name", "t:image",
 			"content", p.GetImageUrl())}
@@ -227,17 +228,15 @@ func (tc *TitleComponent) visitPage(p Element) {
 
 type CssLinkComponent struct {
 	abstractComponent
-	url string
 }
 
-func NewCssLinkComponent(url string) *CssLinkComponent {
+func NewCssLinkComponent() *CssLinkComponent {
 	clc := new(CssLinkComponent)
-	clc.url = url
 	return clc
 }
 
 func (clc *CssLinkComponent) visitPage(p Element) {
-	link := NewNode("link", "", "href", clc.url, "rel", "stylesheet", "type", "text/css")
+	link := NewNode("link", "", "href", clc.abstractComponent.context.GetCssUrl(), "rel", "stylesheet", "type", "text/css")
 	p.addHeaderNodes([]*Node{link})
 }
 
@@ -246,12 +245,10 @@ func (clc *CssLinkComponent) visitPage(p Element) {
 type BlogNaviComponent struct {
 	wrapper
 	abstractComponent
-	context Context
 }
 
-func NewBlogNaviContextComponent(c Context) *BlogNaviComponent {
+func NewBlogNaviContextComponent() *BlogNaviComponent {
 	bnc := new(BlogNaviComponent)
-	bnc.context = c
 	return bnc
 }
 
@@ -261,7 +258,7 @@ func (b *BlogNaviComponent) addPrevious(p Element, n *Node) {
 		span := NewNode("span", "< previous posts", "class", "blognavicomponent__previous")
 		n.AddChild(span)
 	} else {
-		elems := b.context.GetElements()
+		elems := b.abstractComponent.context.GetElements()
 		pv := elems[inx-1]
 		a := NewNode("a", "< previous posts", "href", pv.GetPath(), "rel", "prev", "class", "blognavicomponent__previous")
 		n.AddChild(a)
@@ -270,11 +267,11 @@ func (b *BlogNaviComponent) addPrevious(p Element, n *Node) {
 
 func (b *BlogNaviComponent) addNext(p Element, n *Node) {
 	inx := b.getIndexOfPage(p)
-	if inx == len(b.context.GetElements())-1 {
+	if inx == len(b.abstractComponent.context.GetElements())-1 {
 		span := NewNode("span", "next posts >", "class", "blognavicomponent__next")
 		n.AddChild(span)
 	} else {
-		elems := b.context.GetElements()
+		elems := b.abstractComponent.context.GetElements()
 		nx := elems[inx+1]
 		a := NewNode("a", "next posts >", "href", nx.GetPath(), "rel", "next", "class", "blognavicomponent__next")
 		n.AddChild(a)
@@ -293,14 +290,14 @@ func (b *BlogNaviComponent) addBodyNodes(p Element) {
 }
 
 func (b *BlogNaviComponent) visitPage(p Element) {
-	if len(b.context.GetElements()) < 3 {
+	if len(b.abstractComponent.context.GetElements()) < 3 {
 		return
 	}
 	b.addBodyNodes(p)
 }
 
 func (b *BlogNaviComponent) getIndexOfPage(p Element) int {
-	for i, l := range b.context.GetElements() {
+	for i, l := range b.abstractComponent.context.GetElements() {
 		if l.GetPath() == p.GetPath() {
 			return i
 		}
@@ -372,23 +369,22 @@ a.blognavientry__tile {
 }
 
 /* MainNaviComponent */
-func NewMainNaviComponent(locations []Location) *MainNaviComponent {
+func NewMainNaviComponent() *MainNaviComponent {
 	nc := new(MainNaviComponent)
-	nc.locations = locations
 	return nc
 }
 
 type MainNaviComponent struct {
+	abstractComponent
 	wrapper
-	locations []Location
-	cssClass  string
+	cssClass string
 }
 
 func (nv *MainNaviComponent) visitPage(p Element) {
 	nav := NewNode("nav", "",
 		"class", "mainnavi")
 	url := p.GetPath()
-	for _, l := range nv.locations {
+	for _, l := range nv.abstractComponent.context.GetMainNavigationLocations() {
 		if url == l.GetPath() {
 			span := NewNode("span", l.GetTitle(),
 				"class", "mainnavi__navelement--current")
@@ -446,24 +442,22 @@ a.mainnavi__navelement:hover {
 
 /* FooterNaviComponent */
 
-func NewFooterNaviComponent(locations []Location) *FooterNaviComponent {
+func NewFooterNaviComponent() *FooterNaviComponent {
 	nc := new(FooterNaviComponent)
-	nc.locations = locations
-	fmt.Println("ZZZZ", len(locations))
 	return nc
 }
 
 type FooterNaviComponent struct {
+	abstractComponent
 	wrapper
-	locations []Location
-	cssClass  string
+	cssClass string
 }
 
 func (nv *FooterNaviComponent) visitPage(p Element) {
 	nav := NewNode("nav", "",
 		"class", "footernavi")
 	url := p.GetPath()
-	for _, l := range nv.locations {
+	for _, l := range nv.abstractComponent.context.GetMainNavigationLocations() {
 		if url == l.GetPath() {
 			span := NewNode("span", l.GetTitle(),
 				"class", "footernavi__navelement--current")
@@ -516,23 +510,23 @@ a.footernavi__navelement:hover,
 /* ReadNaviComponent */
 
 type ReadNaviComponent struct {
+	abstractComponent
 	wrapper
-	locations []Location
 }
 
-func NewReadNaviComponent(locations []Location) *ReadNaviComponent {
+func NewReadNaviComponent() *ReadNaviComponent {
 	rnc := new(ReadNaviComponent)
-	rnc.locations = locations
 	return rnc
 }
 
 func (rnv *ReadNaviComponent) addFirst(p Element, n *Node) {
 	inx := rnv.getIndexOfPage(p)
+	locations := rnv.abstractComponent.context.GetReadNavigationLocations()
 	if inx == 0 {
 		span := NewNode("span", "<< first")
 		n.AddChild(span)
 	} else {
-		f := rnv.locations[0]
+		f := locations[0]
 		a := NewNode("a", "<< first", "href", f.GetPath(), "rel", "first")
 		n.AddChild(a)
 	}
@@ -540,11 +534,12 @@ func (rnv *ReadNaviComponent) addFirst(p Element, n *Node) {
 
 func (rnv *ReadNaviComponent) addPrevious(p Element, n *Node) {
 	inx := rnv.getIndexOfPage(p)
+	locations := rnv.abstractComponent.context.GetReadNavigationLocations()
 	if inx == 0 {
 		span := NewNode("span", "< previous")
 		n.AddChild(span)
 	} else {
-		p := rnv.locations[inx-1]
+		p := locations[inx-1]
 		a := NewNode("a", "< previous", "href", p.GetPath(), "rel", "prev")
 		n.AddChild(a)
 	}
@@ -552,11 +547,12 @@ func (rnv *ReadNaviComponent) addPrevious(p Element, n *Node) {
 
 func (rnv *ReadNaviComponent) addNext(p Element, n *Node) {
 	inx := rnv.getIndexOfPage(p)
-	if inx == len(rnv.locations)-1 {
+	locations := rnv.abstractComponent.context.GetReadNavigationLocations()
+	if inx == len(locations)-1 {
 		span := NewNode("span", "next >")
 		n.AddChild(span)
 	} else {
-		nx := rnv.locations[inx+1]
+		nx := locations[inx+1]
 		a := NewNode("a", "next >", "href", nx.GetPath(), "rel", "next")
 		n.AddChild(a)
 	}
@@ -564,11 +560,12 @@ func (rnv *ReadNaviComponent) addNext(p Element, n *Node) {
 
 func (rnv *ReadNaviComponent) addLast(p Element, n *Node) {
 	inx := rnv.getIndexOfPage(p)
-	if inx == len(rnv.locations)-1 {
+	locations := rnv.abstractComponent.context.GetReadNavigationLocations()
+	if inx == len(locations)-1 {
 		span := NewNode("span", "newest >>")
 		n.AddChild(span)
 	} else {
-		nw := rnv.locations[len(rnv.locations)-1]
+		nw := locations[len(locations)-1]
 		a := NewNode("a", "neweset >>", "href", nw.GetPath(), "rel", "last")
 		n.AddChild(a)
 	}
@@ -576,18 +573,19 @@ func (rnv *ReadNaviComponent) addLast(p Element, n *Node) {
 
 func (rnv *ReadNaviComponent) addHeaderNodes(p Element) {
 	inx := rnv.getIndexOfPage(p)
+	locations := rnv.abstractComponent.context.GetReadNavigationLocations()
 	n := []*Node{}
-	firstUrl := rnv.locations[0].GetPath()
+	firstUrl := locations[0].GetPath()
 	n = append(n, NewNode("link", "", "rel", "first", "href", firstUrl))
 	if inx > 0 {
-		prevUrl := rnv.locations[inx-1].GetPath()
+		prevUrl := locations[inx-1].GetPath()
 		n = append(n, NewNode("link", "", "rel", "prev", "href", prevUrl))
 	}
-	if inx < len(rnv.locations)-1 {
-		nextUrl := rnv.locations[inx+1].GetPath()
+	if inx < len(locations)-1 {
+		nextUrl := locations[inx+1].GetPath()
 		n = append(n, NewNode("link", "", "rel", "next", "href", nextUrl))
 	}
-	lastUrl := rnv.locations[len(rnv.locations)-1].GetPath()
+	lastUrl := locations[len(locations)-1].GetPath()
 	n = append(n, NewNode("link", "", "rel", "last", "href", lastUrl))
 	p.addHeaderNodes(n)
 }
@@ -603,7 +601,7 @@ func (rnv *ReadNaviComponent) addBodyNodes(p Element) {
 }
 
 func (rnv *ReadNaviComponent) visitPage(p Element) {
-	if len(rnv.locations) < 3 {
+	if len(rnv.abstractComponent.context.GetReadNavigationLocations()) < 3 {
 		return
 	}
 	rnv.addHeaderNodes(p)
@@ -612,7 +610,8 @@ func (rnv *ReadNaviComponent) visitPage(p Element) {
 }
 
 func (rnv *ReadNaviComponent) getIndexOfPage(p Element) int {
-	for i, l := range rnv.locations {
+	locations := rnv.abstractComponent.context.GetReadNavigationLocations()
+	for i, l := range locations {
 		if l.GetPath() == p.GetPath() {
 			return i
 		}
@@ -623,14 +622,13 @@ func (rnv *ReadNaviComponent) getIndexOfPage(p Element) int {
 /* disqus component */
 
 type DisqusComponent struct {
+	abstractComponent
 	wrapper
-	shortname    string
 	configuredJs string
 }
 
-func NewDisqusComponent(shortname string) *DisqusComponent {
+func NewDisqusComponent() *DisqusComponent {
 	d := new(DisqusComponent)
-	d.shortname = shortname
 	return d
 }
 
@@ -661,7 +659,7 @@ var disqus_config = function () {
 	s.setAttribute('data-timestamp', +new Date());
 	(d.head || d.body).appendChild(s);
 })();
-`, p.GetTitle(), p.GetDomain()+p.GetPath(), p.GetDisqusId(), dc.shortname)
+`, p.GetTitle(), p.GetDomain()+p.GetPath(), p.GetDisqusId(), dc.abstractComponent.context.GetDisqusShortname())
 	n := NewNode("div", " ", "id", "disqus_thread", "class", "disqus")
 	wn := dc.wrap(n)
 	p.addBodyNodes([]*Node{wn})
@@ -670,19 +668,18 @@ var disqus_config = function () {
 /* main  header component */
 
 type MainHeaderComponent struct {
+	abstractComponent
 	wrapper
-	context Context
 }
 
-func NewMainHeaderComponent(context Context) *MainHeaderComponent {
+func NewMainHeaderComponent() *MainHeaderComponent {
 	mhc := new(MainHeaderComponent)
-	mhc.context = context
 	return mhc
 }
 
 func (mhc *MainHeaderComponent) visitPage(p Element) {
 	logo := NewNode("a", "<!-- logo -->",
-		"href", mhc.context.GetHomeUrl(),
+		"href", mhc.abstractComponent.context.GetHomeUrl(),
 		"class", "headerbar__logo")
 	logocontainer := NewNode("div", "",
 		"class", "headerbar__logocontainer")
@@ -731,6 +728,7 @@ func (mhc *MainHeaderComponent) GetCss() string {
 
 /* content component */
 type ContentComponent struct {
+	abstractComponent
 	wrapper
 }
 
@@ -817,11 +815,13 @@ func (gal *GalleryComponent) getCss() string { return `` }
 
 /* copyright component */
 type CopyRightComponent struct {
+	abstractComponent
 	wrapper
 }
 
 func NewCopyRightComponent() *CopyRightComponent {
-	return new(CopyRightComponent)
+	c := new(CopyRightComponent)
+	return c
 }
 
 func (crc *CopyRightComponent) visitPage(p Element) {

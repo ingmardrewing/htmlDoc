@@ -32,14 +32,12 @@ type Context interface {
 	GetComponents() []component
 	WriteTo(targetDir string)
 	AddPage(p Element)
-	AddComponents()
-	AddLocations(l []Location)
-	SetGlobalFields(twitterHandle, topic, tags, site, cardType, section, fbPage, twitterPage, cssUrl, rssUrl, home, disqusShortname string, mainNavi, footerNavi []Location)
+	SetGlobalFields(twitterHandle, topic, tags, site, cardType, section, fbPage, twitterPage, cssUrl, rssUrl, home, disqusShortname string)
 }
 
 /* Global Context */
 
-type GlobalContext struct {
+type ContextImpl struct {
 	twitterHandle             string
 	contentSection            string
 	tags                      string
@@ -58,7 +56,7 @@ type GlobalContext struct {
 	components                []component
 }
 
-func (gc *GlobalContext) SetGlobalFields(
+func (c *ContextImpl) SetGlobalFields(
 	twitterHandle,
 	topic,
 	tags,
@@ -70,129 +68,121 @@ func (gc *GlobalContext) SetGlobalFields(
 	cssUrl,
 	rssUrl,
 	home,
-	disqusShortname string,
-	mainNavi,
-	footerNavi []Location) {
-	gc.twitterHandle = twitterHandle
-	gc.contentSection = topic
-	gc.tags = tags
-	gc.siteName = site
-	gc.twitterCardType = cardType
-	gc.ogType = section
-	gc.fbPageUrl = fbPage
-	gc.twitterPageUrl = twitterPage
-	gc.cssUrl = cssUrl
-	gc.rssUrl = rssUrl
-	gc.homeUrl = home
-	gc.disqusShortname = disqusShortname
-	gc.mainNavigationLocations = mainNavi
-	gc.footerNavigationLocations = footerNavi
+	disqusShortname string) {
+	c.twitterHandle = twitterHandle
+	c.contentSection = topic
+	c.tags = tags
+	c.siteName = site
+	c.twitterCardType = cardType
+	c.ogType = section
+	c.fbPageUrl = fbPage
+	c.twitterPageUrl = twitterPage
+	c.cssUrl = cssUrl
+	c.rssUrl = rssUrl
+	c.homeUrl = home
+	c.disqusShortname = disqusShortname
 }
 
-func (gc *GlobalContext) WriteTo(targetDir string) {
-	for _, p := range gc.pages {
-		for _, c := range gc.components {
+func (c *ContextImpl) WriteTo(targetDir string) {
+	for _, p := range c.pages {
+		for _, c := range c.components {
 			p.acceptVisitor(c)
 		}
 
 		path := targetDir + p.GetFsPath()
 		filename := p.GetFsFilename()
-		html := p.Render() + gc.GetJs()
+		html := p.Render() + c.GetJs()
 		fs.WriteStringToFS(path, filename, html)
 	}
 }
 
-func (gc *GlobalContext) AddLocations(l []Location) {
-	//
+func (c *ContextImpl) SetElements(pages []Element) {
+	c.pages = pages
 }
 
-func (gc *GlobalContext) SetElements(pages []Element) {
-	gc.pages = pages
+func (c *ContextImpl) GetComponents() []component {
+	return c.components
 }
 
-func (gc *GlobalContext) GetComponents() []component {
-	return gc.components
+func (c *ContextImpl) GetElements() []Element {
+	return c.pages
 }
 
-func (gc *GlobalContext) GetElements() []Element {
-	return gc.pages
+func (c *ContextImpl) AddPage(p Element) {
+	c.pages = append(c.pages, p)
 }
 
-func (gc *GlobalContext) AddPage(p Element) {
-	gc.pages = append(gc.pages, p)
+func (c *ContextImpl) AddComponent(comp component) {
+	c.components = append(c.components, comp)
 }
 
-func (gc *GlobalContext) AddComponent(c component) {
-	gc.components = append(gc.components, c)
+func (c *ContextImpl) GetHomeUrl() string {
+	return c.homeUrl
 }
 
-func (gc *GlobalContext) GetHomeUrl() string {
-	return gc.homeUrl
+func (c *ContextImpl) GetRssUrl() string {
+	return c.rssUrl
 }
 
-func (gc *GlobalContext) GetRssUrl() string {
-	return gc.rssUrl
+func (c *ContextImpl) GetDisqusShortname() string {
+	return c.disqusShortname
 }
 
-func (gc *GlobalContext) GetDisqusShortname() string {
-	return gc.disqusShortname
+func (c *ContextImpl) GetMainNavigationLocations() []Location {
+	return c.mainNavigationLocations
 }
 
-func (gc *GlobalContext) GetMainNavigationLocations() []Location {
-	return gc.mainNavigationLocations
+func (c *ContextImpl) GetFooterNavigationLocations() []Location {
+	return c.footerNavigationLocations
 }
 
-func (gc *GlobalContext) GetFooterNavigationLocations() []Location {
-	return gc.footerNavigationLocations
+func (c *ContextImpl) GetCssUrl() string {
+	return c.cssUrl
 }
 
-func (gc *GlobalContext) GetCssUrl() string {
-	return gc.cssUrl
+func (c *ContextImpl) GetTwitterPage() string {
+	return c.twitterPageUrl
 }
 
-func (gc *GlobalContext) GetTwitterPage() string {
-	return gc.twitterPageUrl
+func (c *ContextImpl) GetFBPageUrl() string {
+	return c.fbPageUrl
 }
 
-func (gc *GlobalContext) GetFBPageUrl() string {
-	return gc.fbPageUrl
+func (c *ContextImpl) GetOGType() string {
+	return c.ogType
 }
 
-func (gc *GlobalContext) GetOGType() string {
-	return gc.ogType
+func (c *ContextImpl) GetTwitterCardType() string {
+	return c.twitterCardType
 }
 
-func (gc *GlobalContext) GetTwitterCardType() string {
-	return gc.twitterCardType
+func (c *ContextImpl) GetTwitterHandle() string {
+	return c.twitterHandle
 }
 
-func (gc *GlobalContext) GetTwitterHandle() string {
-	return gc.twitterHandle
+func (c *ContextImpl) GetContentSection() string {
+	return c.contentSection
 }
 
-func (gc *GlobalContext) GetContentSection() string {
-	return gc.contentSection
+func (c *ContextImpl) GetContentTags() string {
+	return c.tags
 }
 
-func (gc *GlobalContext) GetContentTags() string {
-	return gc.tags
+func (c *ContextImpl) GetSiteName() string {
+	return c.siteName
 }
 
-func (gc *GlobalContext) GetSiteName() string {
-	return gc.siteName
-}
-
-func (gc *GlobalContext) GetCss() string {
+func (c *ContextImpl) GetCss() string {
 	css := ""
-	for _, c := range gc.components {
+	for _, c := range c.components {
 		css += c.GetCss()
 	}
-	return gc.minifyCss(css)
+	return c.minifyCss(css)
 }
 
-func (gc *GlobalContext) GetJs() string {
+func (c *ContextImpl) GetJs() string {
 	jsCode := ""
-	for _, c := range gc.components {
+	for _, c := range c.components {
 		jsCode += c.GetJs()
 	}
 
@@ -205,7 +195,7 @@ func (gc *GlobalContext) GetJs() string {
 	return fmt.Sprintf(`<script>%s</script>`, s)
 }
 
-func (gc *GlobalContext) minifyCss(txt string) string {
+func (c *ContextImpl) minifyCss(txt string) string {
 	m := minify.New()
 	m.AddFunc("text/css", css.Minify)
 	s, err := m.String("text/css", txt)
@@ -215,101 +205,66 @@ func (gc *GlobalContext) minifyCss(txt string) string {
 	return s
 }
 
-func (gc *GlobalContext) GetReadNavigationLocations() []Location {
+func (c *ContextImpl) GetReadNavigationLocations() []Location {
 	return nil
+}
+
+func newContext(mainnavi, footernavi []Location, contentComponents []component) Context {
+	c := new(ContextImpl)
+	c.mainNavigationLocations = mainnavi
+	c.footerNavigationLocations = footernavi
+
+	components := []component{
+		NewGeneralMetaComponent(),
+		NewFaviconComponent(),
+		NewGlobalCssComponent(),
+		NewGoogleComponent(),
+		NewTwitterComponent(),
+		NewFBComponent(),
+		NewCssLinkComponent(),
+		NewTitleComponent()}
+
+	bodyComponents := []component{
+		NewMainHeaderComponent(),
+		NewMainNaviComponent(),
+		NewCopyRightComponent(),
+		NewFooterNaviComponent()}
+
+	components = append(components, contentComponents...)
+	components = append(components, bodyComponents...)
+
+	for _, comp := range components {
+		comp.SetContext(c)
+		c.AddComponent(comp)
+	}
+
+	return c
 }
 
 /* Blog Context */
 
-func NewBlogContext() *BlogContext {
-	bc := new(BlogContext)
-	return bc
-}
-
-type BlogContext struct {
-	GlobalContext
-	readNavigationLocations []Location
-}
-
-func (bc *BlogContext) AddComponents() {
-	bc.AddComponent(NewGeneralMetaComponent())
-	bc.AddComponent(NewFaviconComponent())
-	bc.AddComponent(NewGlobalCssComponent())
-	bc.AddComponent(NewGoogleComponent(bc))
-	bc.AddComponent(NewTwitterComponent(bc))
-	bc.AddComponent(NewFBComponent(bc))
-	bc.AddComponent(NewCssLinkComponent(bc.GetCssUrl()))
-	bc.AddComponent(NewTitleComponent())
-	bc.AddComponent(NewContentComponent())
-	bc.AddComponent(NewMainHeaderComponent(bc))
-	bc.AddComponent(NewMainNaviComponent(bc.GetMainNavigationLocations()))
-
-	bc.AddComponent(NewDisqusComponent(bc.GetDisqusShortname()))
-
-	bc.AddComponent(NewCopyRightComponent())
-	footerLocs := bc.GetFooterNavigationLocations()
-	fmt.Println("YYYY", len(footerLocs))
-	bc.AddComponent(NewFooterNaviComponent(footerLocs))
+func NewBlogContext(mainnavi, footernavi []Location) Context {
+	contentComponents := []component{
+		NewContentComponent(),
+		NewDisqusComponent()}
+	c := newContext(mainnavi, footernavi, contentComponents)
+	return c
 }
 
 /* Footer Context */
 
-func NewFooterContext() *FooterContext {
-	return new(FooterContext)
-}
-
-type FooterContext struct {
-	GlobalContext
-}
-
-func (bc *FooterContext) AddComponents() {
-	bc.AddComponent(NewGeneralMetaComponent())
-	bc.AddComponent(NewFaviconComponent())
-	bc.AddComponent(NewGlobalCssComponent())
-	bc.AddComponent(NewGoogleComponent(bc))
-	bc.AddComponent(NewTwitterComponent(bc))
-	bc.AddComponent(NewFBComponent(bc))
-	bc.AddComponent(NewCssLinkComponent(bc.GetCssUrl()))
-	bc.AddComponent(NewTitleComponent())
-
-	bc.AddComponent(NewContentComponent())
-	bc.AddComponent(NewMainHeaderComponent(bc))
-	bc.AddComponent(NewMainNaviComponent(bc.GetMainNavigationLocations()))
-	bc.AddComponent(NewCopyRightComponent())
-	footerLocs := bc.GetFooterNavigationLocations()
-	fmt.Println("Y1YYY", len(footerLocs))
-	bc.AddComponent(NewFooterNaviComponent(footerLocs))
+func NewFooterContext(mainnavi, footernavi []Location) Context {
+	contentComponents := []component{
+		NewContentComponent()}
+	c := newContext(mainnavi, footernavi, contentComponents)
+	return c
 }
 
 /* Blog Navi Context */
 
-func NewBlogNaviContext() *BlogNaviContext {
-	bn := new(BlogNaviContext)
-	return bn
-}
-
-type BlogNaviContext struct {
-	GlobalContext
-	context *BlogContext
-}
-
-func (bn *BlogNaviContext) AddComponents() {
-	// header
-	bn.AddComponent(NewGeneralMetaComponent())
-	bn.AddComponent(NewFaviconComponent())
-	bn.AddComponent(NewGoogleComponent(bn))
-	bn.AddComponent(NewTwitterComponent(bn))
-	bn.AddComponent(NewFBComponent(bn))
-	bn.AddComponent(NewCssLinkComponent(bn.GetCssUrl()))
-	bn.AddComponent(NewTitleComponent())
-
-	// body
-	bn.AddComponent(NewBlogNaviContextComponent(bn))
-	bn.AddComponent(NewMainHeaderComponent(bn))
-	bn.AddComponent(NewMainNaviComponent(bn.GetMainNavigationLocations()))
-	bn.AddComponent(NewCopyRightComponent())
-
-	footerLocs := bn.GetFooterNavigationLocations()
-	fmt.Println("Y2YYY", len(footerLocs))
-	bn.AddComponent(NewFooterNaviComponent(footerLocs))
+func NewBlogNaviContext(mainnavi, footernavi []Location) Context {
+	contentComponents := []component{
+		NewBlogNaviContextComponent()}
+	c := newContext(mainnavi, footernavi, contentComponents)
+	return c
 }
