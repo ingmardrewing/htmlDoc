@@ -209,12 +209,19 @@ func (c *ContextImpl) GetReadNavigationLocations() []Location {
 	return nil
 }
 
+func fillContextWithComponents(context Context, components ...component) {
+	for _, compo := range components {
+		compo.SetContext(context)
+		context.AddComponent(compo)
+	}
+}
+
 func newContext(mainnavi, footernavi []Location, contentComponents []component) Context {
 	c := new(ContextImpl)
 	c.mainNavigationLocations = mainnavi
 	c.footerNavigationLocations = footernavi
 
-	components := []component{
+	fillContextWithComponents(c,
 		NewGeneralMetaComponent(),
 		NewFaviconComponent(),
 		NewGlobalCssComponent(),
@@ -222,21 +229,15 @@ func newContext(mainnavi, footernavi []Location, contentComponents []component) 
 		NewTwitterComponent(),
 		NewFBComponent(),
 		NewCssLinkComponent(),
-		NewTitleComponent()}
+		NewTitleComponent())
 
-	bodyComponents := []component{
+	fillContextWithComponents(c, contentComponents...)
+
+	fillContextWithComponents(c,
 		NewMainHeaderComponent(),
 		NewMainNaviComponent(),
 		NewCopyRightComponent(),
-		NewFooterNaviComponent()}
-
-	components = append(components, contentComponents...)
-	components = append(components, bodyComponents...)
-
-	for _, comp := range components {
-		comp.SetContext(c)
-		c.AddComponent(comp)
-	}
+		NewFooterNaviComponent())
 
 	return c
 }
