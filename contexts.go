@@ -2,6 +2,7 @@ package htmlDoc
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/ingmardrewing/fs"
 	"github.com/tdewolff/minify"
@@ -218,6 +219,23 @@ func fillContextWithComponents(context Context, components ...component) {
 
 var components = []component{}
 
+func addComponents(components ...component) {
+	for _, comp := range components {
+		if !containsComponent(comp) {
+			components = append(components, comp)
+		}
+	}
+}
+
+func containsComponent(c component) bool {
+	for _, comp := range components {
+		if reflect.TypeOf(comp) == reflect.TypeOf(c) {
+			return true
+		}
+	}
+	return false
+}
+
 func newContext(mainnavi, footernavi []Location, contentComponents []component) Context {
 	c := new(ContextImpl)
 	c.mainNavigationLocations = mainnavi
@@ -241,7 +259,8 @@ func newContext(mainnavi, footernavi []Location, contentComponents []component) 
 		NewCopyRightComponent(),
 		NewFooterNaviComponent())
 
-	components = append(components, c.GetComponents()...)
+	addComponents(c.GetComponents()...)
+
 	return c
 }
 
