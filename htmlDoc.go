@@ -80,10 +80,9 @@ func (n *Node) renderChildren() string {
 */
 
 type HtmlDoc struct {
-	title   string
-	head    []*Node
-	content []*Node
-	dom     *goquery.Document
+	head []*Node
+	body []*Node
+	dom  *goquery.Document
 }
 
 func NewHtmlDoc() *HtmlDoc {
@@ -103,7 +102,7 @@ func (p *HtmlDoc) populateDom() {
 	for _, m := range p.head {
 		p.dom.Find("head").AppendHtml(m.Render())
 	}
-	for _, m := range p.content {
+	for _, m := range p.body {
 		p.dom.Find("body").AppendHtml(m.Render())
 	}
 }
@@ -113,5 +112,5 @@ func (p *HtmlDoc) AddHeadNode(n *Node) {
 }
 
 func (p *HtmlDoc) AddBodyNode(n *Node) {
-	p.content = append(p.content, n)
+	p.body = append(p.body, n)
 }
