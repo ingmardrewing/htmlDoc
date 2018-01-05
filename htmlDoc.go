@@ -1,3 +1,4 @@
+// A wrapper around qoquery and a means to create markup structures
 package htmlDoc
 
 import (
@@ -9,10 +10,10 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-/*
-	Node
-*/
-
+// Create a new Node and takes its name, a possible text contained by
+// the Node and a variadic list of attributes as parameters. The attributes
+// are supposed to be name value pairs and thus their number need to be
+// divisble by two.
 func NewNode(tagName string, text string, attributes ...string) *Node {
 	if len(attributes)%2 != 0 {
 		log.Fatalln("Wrong attribute count at NewNode")
@@ -26,6 +27,7 @@ func NewNode(tagName string, text string, attributes ...string) *Node {
 	return &Node{tagName, m, []*Node{}, text}
 }
 
+// The Node is a programmatic description of HTML dom nodes
 type Node struct {
 	tagName  string
 	attrMap  map[string]string
@@ -33,6 +35,8 @@ type Node struct {
 	text     string
 }
 
+// Render transforms the node and all its children into HTML
+// and returns it as string
 func (n *Node) Render() string {
 	if n.isEmpty() {
 		return n.renderEmpty()
@@ -40,6 +44,7 @@ func (n *Node) Render() string {
 	return n.renderStuffed()
 }
 
+// AddChild allow to add a child Node to the current Node
 func (n *Node) AddChild(node *Node) {
 	n.children = append(n.children, node)
 }
@@ -75,22 +80,24 @@ func (n *Node) renderChildren() string {
 	return html
 }
 
-/*
-	HtmlDoc
-*/
-
-type HtmlDoc struct {
-	head []*Node
-	body []*Node
-	dom  *goquery.Document
-}
-
+// NewHtmlDoc createas a pointer to a new HtmlDoc and initializes it
+// with an (almost) empty goquery.Document
 func NewHtmlDoc() *HtmlDoc {
 	p := new(HtmlDoc)
 	p.dom, _ = goquery.NewDocumentFromReader(strings.NewReader(""))
 	return p
 }
 
+// HtmlDoc sort of wraps a goquery document and allows to add
+// Nodes to the head and/or body of the document
+type HtmlDoc struct {
+	head []*Node
+	body []*Node
+	dom  *goquery.Document
+}
+
+// Render renders the HtmlDoc as HTML, including all its nodes
+// within the head and body part
 func (p *HtmlDoc) Render() string {
 	dtd := "<!doctype html>"
 	p.populateDom()
@@ -107,10 +114,12 @@ func (p *HtmlDoc) populateDom() {
 	}
 }
 
+// Add a Node which is going to end up in the head of the HTML Document
 func (p *HtmlDoc) AddHeadNode(n *Node) {
 	p.head = append(p.head, n)
 }
 
+// Add a Node which is going to end up in the body of the HTML Document
 func (p *HtmlDoc) AddBodyNode(n *Node) {
 	p.body = append(p.body, n)
 }
