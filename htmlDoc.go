@@ -91,9 +91,10 @@ func NewHtmlDoc() *HtmlDoc {
 // HtmlDoc sort of wraps a goquery document and allows to add
 // Nodes to the head and/or body of the document
 type HtmlDoc struct {
-	head []*Node
-	body []*Node
-	dom  *goquery.Document
+	head     []*Node
+	body     []*Node
+	rootAttr map[string]string
+	dom      *goquery.Document
 }
 
 // Render renders the HtmlDoc as HTML, including all its nodes
@@ -102,7 +103,25 @@ func (p *HtmlDoc) Render() string {
 	dtd := "<!doctype html>"
 	p.populateDom()
 	html, _ := p.dom.Html()
-	return dtd + html
+	parts := strings.Split(html, "<html>")
+	return dtd + strings.Join(parts, p.renderRootNode())
+}
+
+func (p *HtmlDoc) AddRootAttr(name, value string) {
+	p.rootAttr[name] = value
+}
+
+func (p *HtmlDoc) renderRootNode() string {
+	attrTxts := []string{}
+	for k, v := range p.rootAttr {
+		att := fmt.Sprintf(`%s="%s"`, k, v)
+		attrTxts = append(attrTxts, att)
+	}
+	attrs := strings.Join(attrTxts, " ")
+	if len(attrs) > 0 {
+		return fmt.Sprintf("<html %s>", attrs)
+	}
+	return "<html>"
 }
 
 func (p *HtmlDoc) populateDom() {
