@@ -56,18 +56,18 @@ func (n *Node) isEmpty() bool {
 func (n *Node) renderAttributes() string {
 	attr := []string{}
 	for k, v := range n.attrMap {
-		attr = append(attr, fmt.Sprintf(`%s="%s"`, k, v))
+		attr = append(attr, fmt.Sprintf(` %s="%s"`, k, v))
 	}
 	sort.Strings(attr)
-	return strings.Join(attr, " ")
+	return strings.Join(attr, "")
 }
 
 func (n *Node) renderEmpty() string {
-	return fmt.Sprintf("<%s %s />", n.tagName, n.renderAttributes())
+	return fmt.Sprintf("<%s%s />", n.tagName, n.renderAttributes())
 }
 
 func (n *Node) renderStuffed() string {
-	start := fmt.Sprintf("<%s %s>", n.tagName, n.renderAttributes())
+	start := fmt.Sprintf("<%s%s>", n.tagName, n.renderAttributes())
 	end := fmt.Sprintf("</%s>", n.tagName)
 	return start + n.renderChildren() + n.text + end
 }
@@ -93,7 +93,7 @@ func NewHtmlDoc() *HtmlDoc {
 type HtmlDoc struct {
 	head     []*Node
 	body     []*Node
-	rootAttr map[string]string
+	rootAttr []string
 	dom      *goquery.Document
 }
 
@@ -107,17 +107,17 @@ func (p *HtmlDoc) Render() string {
 	return dtd + strings.Join(parts, p.renderRootNode())
 }
 
-func (p *HtmlDoc) AddRootAttr(name, value string) {
-	p.rootAttr[name] = value
+func (p *HtmlDoc) AddRootAttr(att ...string) {
+	if len(att) == 1 {
+		p.rootAttr = append(p.rootAttr, att[0])
+	} else if len(att) == 2 {
+		attr := fmt.Sprintf(`%s="%s"`, att[0], att[1])
+		p.rootAttr = append(p.rootAttr, attr)
+	}
 }
 
 func (p *HtmlDoc) renderRootNode() string {
-	attrTxts := []string{}
-	for k, v := range p.rootAttr {
-		att := fmt.Sprintf(`%s="%s"`, k, v)
-		attrTxts = append(attrTxts, att)
-	}
-	attrs := strings.Join(attrTxts, " ")
+	attrs := strings.Join(p.rootAttr, " ")
 	if len(attrs) > 0 {
 		return fmt.Sprintf("<html %s>", attrs)
 	}

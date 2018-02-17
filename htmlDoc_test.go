@@ -1,6 +1,8 @@
 package htmlDoc
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestNewPage(t *testing.T) {
 	page := NewHtmlDoc()
@@ -19,6 +21,22 @@ func TestNodeAddChild(t *testing.T) {
 
 	actual := n.Render()
 	expected := `<nav class="mainNavi"><a href="test.html">test</a></nav>`
+
+	if actual != expected {
+		t.Fatal("Expected ", expected, " but got ", actual)
+	}
+}
+
+func TestAddSeveralChildNodes(t *testing.T) {
+	c1 := NewNode("div", "", "class", "one")
+	c2 := NewNode("div", "", "class", "two")
+
+	n := NewNode("main", "")
+	n.AddChild(c1)
+	n.AddChild(c2)
+
+	actual := n.Render()
+	expected := `<main><div class="one" /><div class="two" /></main>`
 
 	if actual != expected {
 		t.Fatal("Expected ", expected, " but got ", actual)
