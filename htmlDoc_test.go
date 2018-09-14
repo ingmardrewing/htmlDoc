@@ -19,7 +19,8 @@ func TestNodeAddChild(t *testing.T) {
 	a := NewNode("a", "test", "href", "test.html")
 	n.AddChild(a)
 
-	actual := n.Render()
+	r := NewHtmlNodeRenderer(n)
+	actual := r.render()
 	expected := `<nav class="mainNavi"><a href="test.html">test</a></nav>`
 
 	if actual != expected {
@@ -35,7 +36,8 @@ func TestAddSeveralChildNodes(t *testing.T) {
 	n.AddChild(c1)
 	n.AddChild(c2)
 
-	actual := n.Render()
+	r := NewHtmlNodeRenderer(n)
+	actual := r.render()
 	expected := `<main><div class="one" /><div class="two" /></main>`
 
 	if actual != expected {
