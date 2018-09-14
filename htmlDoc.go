@@ -40,6 +40,12 @@ func (n *Node) isEmpty() bool {
 	return len(n.children) == 0 && n.text == ""
 }
 
+type Doc interface {
+	headNodes() []*Node
+	bodyNodes() []*Node
+	rootAttributes() []string
+}
+
 // NewHtmlDoc createas a pointer to a new HtmlDoc and initializes it
 // with an (almost) empty goquery.Document
 func NewHtmlDoc() *HtmlDoc {
@@ -53,6 +59,18 @@ type HtmlDoc struct {
 	head     []*Node
 	body     []*Node
 	rootAttr []string
+}
+
+func (d *HtmlDoc) headNodes() []*Node {
+	return d.head
+}
+
+func (d *HtmlDoc) bodyNodes() []*Node {
+	return d.body
+}
+
+func (d *HtmlDoc) rootAttributes() []string {
+	return d.rootAttr
 }
 
 // Render renders the HtmlDoc as HTML, including all its nodes

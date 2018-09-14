@@ -8,26 +8,26 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-type htmlDocRenderer struct {
-	doc *HtmlDoc
+type nodeRenderer interface {
+	render() string
 }
 
-func NewHtmlDocRenderer(d *HtmlDoc) *htmlDocRenderer {
+type htmlDocRenderer struct {
+	docRenderer
+	doc Doc
+}
+
+func NewHtmlDocRenderer(d Doc) *htmlDocRenderer {
 	h := new(htmlDocRenderer)
 	h.doc = d
+	h.nodeRendererProvider = NewHtmlNodeRenderer
 	return h
 }
 
 func (h *htmlDocRenderer) render() string {
 	dom, _ := goquery.NewDocumentFromReader(strings.NewReader(""))
-	for _, n := range h.doc.head {
-		renderer := NewHtmlNodeRenderer(n)
-		dom.Find("head").AppendHtml(renderer.render())
-	}
-	for _, n := range h.doc.body {
-		renderer := NewHtmlNodeRenderer(n)
-		dom.Find("body").AppendHtml(renderer.render())
-	}
+	dom.Find("head").AppendHtml(h.renderSliceOfNodes(h.doc.headNodes()))
+	dom.Find("body").AppendHtml(h.renderSliceOfNodes(h.doc.bodyNodes()))
 
 	html, _ := dom.Html()
 	parts := strings.Split(html, "<html>")
@@ -36,18 +36,19 @@ func (h *htmlDocRenderer) render() string {
 }
 
 func (h *htmlDocRenderer) renderRootNode() string {
-	attrs := strings.Join(h.doc.rootAttr, " ")
+	attrs := strings.Join(h.doc.rootAttributes(), " ")
 	if len(attrs) > 0 {
 		return fmt.Sprintf("<html %s>", attrs)
 	}
 	return "<html>"
 }
 
+//
 type htmlNodeRenderer struct {
 	n *Node
 }
 
-func NewHtmlNodeRenderer(n *Node) *htmlNodeRenderer {
+func NewHtmlNodeRenderer(n *Node) nodeRenderer {
 	h := new(htmlNodeRenderer)
 	h.n = n
 	return h
