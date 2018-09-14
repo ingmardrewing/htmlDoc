@@ -4,10 +4,6 @@ package htmlDoc
 import (
 	"fmt"
 	"log"
-	"sort"
-	"strings"
-
-	"github.com/PuerkitoBio/goquery"
 )
 
 // Create a new Node and takes its name, a possible text contained by
@@ -35,15 +31,6 @@ type Node struct {
 	text     string
 }
 
-// Render transforms the node and all its children into HTML
-// and returns it as string
-func (n *Node) Render() string {
-	if n.isEmpty() {
-		return n.renderEmpty()
-	}
-	return n.renderStuffed()
-}
-
 // AddChild allow to add a child Node to the current Node
 func (n *Node) AddChild(node *Node) {
 	n.children = append(n.children, node)
@@ -53,38 +40,10 @@ func (n *Node) isEmpty() bool {
 	return len(n.children) == 0 && n.text == ""
 }
 
-func (n *Node) renderAttributes() string {
-	attr := []string{}
-	for k, v := range n.attrMap {
-		attr = append(attr, fmt.Sprintf(` %s="%s"`, k, v))
-	}
-	sort.Strings(attr)
-	return strings.Join(attr, "")
-}
-
-func (n *Node) renderEmpty() string {
-	return fmt.Sprintf("<%s%s />", n.tagName, n.renderAttributes())
-}
-
-func (n *Node) renderStuffed() string {
-	start := fmt.Sprintf("<%s%s>", n.tagName, n.renderAttributes())
-	end := fmt.Sprintf("</%s>", n.tagName)
-	return start + n.renderChildren() + n.text + end
-}
-
-func (n *Node) renderChildren() string {
-	html := ""
-	for _, child := range n.children {
-		html += child.Render()
-	}
-	return html
-}
-
 // NewHtmlDoc createas a pointer to a new HtmlDoc and initializes it
 // with an (almost) empty goquery.Document
 func NewHtmlDoc() *HtmlDoc {
 	p := new(HtmlDoc)
-	p.dom, _ = goquery.NewDocumentFromReader(strings.NewReader(""))
 	return p
 }
 
@@ -94,17 +53,13 @@ type HtmlDoc struct {
 	head     []*Node
 	body     []*Node
 	rootAttr []string
-	dom      *goquery.Document
 }
 
 // Render renders the HtmlDoc as HTML, including all its nodes
 // within the head and body part
 func (p *HtmlDoc) Render() string {
-	dtd := "<!doctype html>"
-	p.populateDom()
-	html, _ := p.dom.Html()
-	parts := strings.Split(html, "<html>")
-	return dtd + strings.Join(parts, p.renderRootNode())
+	renderer := NewHtmlDocRenderer(p)
+	return renderer.render()
 }
 
 func (p *HtmlDoc) AddRootAttr(att ...string) {
@@ -113,23 +68,6 @@ func (p *HtmlDoc) AddRootAttr(att ...string) {
 	} else if len(att) == 2 {
 		attr := fmt.Sprintf(`%s="%s"`, att[0], att[1])
 		p.rootAttr = append(p.rootAttr, attr)
-	}
-}
-
-func (p *HtmlDoc) renderRootNode() string {
-	attrs := strings.Join(p.rootAttr, " ")
-	if len(attrs) > 0 {
-		return fmt.Sprintf("<html %s>", attrs)
-	}
-	return "<html>"
-}
-
-func (p *HtmlDoc) populateDom() {
-	for _, m := range p.head {
-		p.dom.Find("head").AppendHtml(m.Render())
-	}
-	for _, m := range p.body {
-		p.dom.Find("body").AppendHtml(m.Render())
 	}
 }
 
