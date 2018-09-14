@@ -63,9 +63,9 @@ func (p *HtmlDoc) Render() string {
 }
 
 // Render as AMP
-// TODO: Implement
 func (p *HtmlDoc) RenderAmp() string {
-	return ""
+	renderer := NewAmpDocRenderer(p)
+	return renderer.render()
 }
 
 func (p *HtmlDoc) AddRootAttr(att ...string) {
