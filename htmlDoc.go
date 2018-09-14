@@ -62,6 +62,12 @@ func (p *HtmlDoc) Render() string {
 	return renderer.render()
 }
 
+// Render as AMP
+// TODO: Implement
+func (p *HtmlDoc) RenderAmp() string {
+	return ""
+}
+
 func (p *HtmlDoc) AddRootAttr(att ...string) {
 	if len(att) == 1 {
 		p.rootAttr = append(p.rootAttr, att[0])
