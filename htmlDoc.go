@@ -80,6 +80,18 @@ func (p *HtmlDoc) Render() string {
 	return renderer.render()
 }
 
+// Render head nodes
+func (p *HtmlDoc) RenderHead() string {
+	renderer := NewHtmlDocRenderer(p)
+	return renderer.renderHead()
+}
+
+// Render head nodes
+func (p *HtmlDoc) RenderBody() string {
+	renderer := NewHtmlDocRenderer(p)
+	return renderer.renderBody()
+}
+
 // Render as AMP
 func (p *HtmlDoc) RenderAmp() string {
 	renderer := NewAmpDocRenderer(p)

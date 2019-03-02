@@ -35,6 +35,14 @@ func (h *htmlDocRenderer) render() string {
 	return dtd + strings.Join(parts, h.renderRootNode())
 }
 
+func (h *htmlDocRenderer) renderHead() string {
+	return h.renderSliceOfNodes(h.doc.headNodes())
+}
+
+func (h *htmlDocRenderer) renderBody() string {
+	return h.renderSliceOfNodes(h.doc.bodyNodes())
+}
+
 func (h *htmlDocRenderer) renderRootNode() string {
 	attrs := strings.Join(h.doc.rootAttributes(), " ")
 	if len(attrs) > 0 {
